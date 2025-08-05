@@ -1,0 +1,30 @@
+# FastAPI Backend Requirements - SIAC Industrial Central Manager
+
+# Core FastAPI
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# Database
+sqlite3  # Built-in Python
+
+# WebSocket support
+websockets==12.0
+
+# Computer Vision (já usado no projeto)
+opencv-python==4.8.1.78
+ultralytics==8.0.196
+numpy==1.24.3
+
+# Utilities
+python-dateutil==2.8.2
+typing-extensions==4.8.0
+
+# Development & Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2  # Para testes de API
+
+# Optional: Production
+gunicorn==21.2.0  # Para deploy em produção

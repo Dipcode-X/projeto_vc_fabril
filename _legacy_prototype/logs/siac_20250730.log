@@ -1,0 +1,219 @@
+[2025-07-30 12:08:51] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-30 12:08:51] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-30 12:08:51] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-30 12:08:51] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-30 12:08:51] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-30 12:08:51] [DETECTOR] [INFO] Carregando modelo ROI: modelos_producao/roi_detector.pt
+[2025-07-30 12:08:52] [DETECTOR] [INFO] Carregando modelo de itens: modelos_producao/item_detector.pt
+[2025-07-30 12:08:52] [DETECTOR] [INFO] Todos os modelos de detecção carregados com sucesso
+[2025-07-30 12:08:52] [DETECTOR] [INFO] Confiança mínima configurada: 0.4
+[2025-07-30 12:08:52] [DETECTOR] [INFO] Confiança para divisores: 0.3
+[2025-07-30 12:08:52] [DETECTOR] [INFO] Debug de divisores: Desativado
+[2025-07-30 12:08:52] [STATE_MANAGER] [INFO] StateManager inicializado
+[2025-07-30 12:08:52] [STATE_MANAGER] [INFO] Configuração: 2 camadas, 12 itens por camada
+[2025-07-30 12:08:52] [STATE_MANAGER] [INFO] Memória espacial: Ativada
+[2025-07-30 12:08:52] [VISUALIZER] [INFO] Visualizer inicializado com configurações de desenho
+[2025-07-30 12:08:52] [SIAC_APP] [INFO] Todos os módulos carregados com sucesso
+[2025-07-30 12:08:52] [SIAC_APP] [INFO] Tentando abrir fonte de vídeo: 0
+[2025-07-30 12:09:28] [SIAC_APP] [INFO] Fonte de vídeo aberta com sucesso. Iniciando processamento...
+[2025-07-30 12:09:28] [SIAC_APP] [INFO] Pressione 'q' para encerrar o sistema
+[2025-07-30 12:09:33] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-30 12:09:33] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-30 12:11:05] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-30 12:11:05] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-30 12:11:05] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-30 12:11:08] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:11:08] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:11:08] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:11:10] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 2 → 8 em 0.2s
+[2025-07-30 12:11:14] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:11:14] [STATE_MANAGER] [INFO] Memória espacial: 0/8 itens são novos
+[2025-07-30 12:11:14] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:11:14] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:11:14] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:11:17] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:11:17] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:11:17] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:11:22] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 0 → 4 em 0.2s
+[2025-07-30 12:11:25] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:11:25] [STATE_MANAGER] [INFO] Memória espacial: 2/4 itens são novos
+[2025-07-30 12:11:25] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 50.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:11:25] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:11:25] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:11:32] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:11:32] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:11:32] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:11:42] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 0 → 4 em 0.2s
+[2025-07-30 12:11:46] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:11:46] [STATE_MANAGER] [INFO] Memória espacial: 0/4 itens são novos
+[2025-07-30 12:11:46] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:11:46] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:11:46] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:11:50] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:11:50] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:11:50] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:12:03] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 5 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:12:13] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 0 → 7 em 0.2s
+[2025-07-30 12:12:16] [STATE_MANAGER] [WARNING] Caixa ausente por 3.1s. Pausando contagem.
+[2025-07-30 12:12:16] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → Alerta: Caixa Ausente - ROI perdida após carência
+[2025-07-30 12:12:17] [STATE_MANAGER] [INFO] Caixa reapareceu após 1.3s. Retomando contagem
+[2025-07-30 12:12:17] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: Alerta: Caixa Ausente → CONTANDO_ITENS - ROI reapareceu
+[2025-07-30 12:12:18] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:12:18] [STATE_MANAGER] [INFO] Memória espacial: 0/7 itens são novos
+[2025-07-30 12:12:18] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:12:18] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:12:18] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:22:32] [SIAC_APP] [INFO] Comando de saída recebido pelo usuário
+[2025-07-30 12:22:33] [SIAC_APP] [INFO] Processamento finalizado. Total de frames processados: 4061
+[2025-07-30 12:32:08] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-30 12:32:08] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-30 12:32:08] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-30 12:32:08] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-30 12:32:08] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-30 12:32:08] [DETECTOR] [INFO] Carregando modelo ROI: modelos_producao/roi_detector.pt
+[2025-07-30 12:32:09] [DETECTOR] [INFO] Carregando modelo de itens: modelos_producao/item_detector.pt
+[2025-07-30 12:32:09] [DETECTOR] [INFO] Todos os modelos de detecção carregados com sucesso
+[2025-07-30 12:32:09] [DETECTOR] [INFO] Confiança mínima configurada: 0.4
+[2025-07-30 12:32:09] [DETECTOR] [INFO] Confiança para divisores: 0.3
+[2025-07-30 12:32:09] [DETECTOR] [INFO] Debug de divisores: Desativado
+[2025-07-30 12:32:09] [STATE_MANAGER] [INFO] StateManager inicializado
+[2025-07-30 12:32:09] [STATE_MANAGER] [INFO] Configuração: 2 camadas, 12 itens por camada
+[2025-07-30 12:32:09] [STATE_MANAGER] [INFO] Memória espacial: Ativada
+[2025-07-30 12:32:09] [VISUALIZER] [INFO] Visualizer inicializado com configurações de desenho
+[2025-07-30 12:32:09] [SIAC_APP] [INFO] Todos os módulos carregados com sucesso
+[2025-07-30 12:32:09] [SIAC_APP] [INFO] Tentando abrir fonte de vídeo: 0
+[2025-07-30 12:32:47] [SIAC_APP] [INFO] Fonte de vídeo aberta com sucesso. Iniciando processamento...
+[2025-07-30 12:32:47] [SIAC_APP] [INFO] Pressione 'q' para encerrar o sistema
+[2025-07-30 12:32:51] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-30 12:32:51] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-30 12:33:35] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-30 12:33:35] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-30 12:33:35] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-30 12:33:37] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:33:37] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:33:37] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:33:55] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 5 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:34:31] [STATE_MANAGER] [WARNING] Contagem baixa por 2.2s. Camada 2 não mais estabelecida.
+[2025-07-30 12:34:33] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 6 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:34:35] [STATE_MANAGER] [WARNING] Contagem baixa por 2.1s. Camada 2 não mais estabelecida.
+[2025-07-30 12:34:39] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 6 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:34:42] [STATE_MANAGER] [WARNING] Contagem baixa por 2.2s. Camada 2 não mais estabelecida.
+[2025-07-30 12:34:43] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 0 → 4 em 0.2s
+[2025-07-30 12:34:46] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:34:46] [STATE_MANAGER] [INFO] Memória espacial: 0/4 itens são novos
+[2025-07-30 12:34:46] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:34:46] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:34:46] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:35:05] [SIAC_APP] [INFO] Comando de saída recebido pelo usuário
+[2025-07-30 12:35:06] [SIAC_APP] [INFO] Processamento finalizado. Total de frames processados: 730
+[2025-07-30 12:36:05] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-30 12:36:05] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-30 12:36:05] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-30 12:36:05] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-30 12:36:05] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-30 12:36:05] [DETECTOR] [INFO] Carregando modelo ROI: modelos_producao/roi_detector.pt
+[2025-07-30 12:36:06] [DETECTOR] [INFO] Carregando modelo de itens: modelos_producao/item_detector.pt
+[2025-07-30 12:36:06] [DETECTOR] [INFO] Todos os modelos de detecção carregados com sucesso
+[2025-07-30 12:36:06] [DETECTOR] [INFO] Confiança mínima configurada: 0.4
+[2025-07-30 12:36:06] [DETECTOR] [INFO] Confiança para divisores: 0.3
+[2025-07-30 12:36:06] [DETECTOR] [INFO] Debug de divisores: Desativado
+[2025-07-30 12:36:06] [STATE_MANAGER] [INFO] StateManager inicializado
+[2025-07-30 12:36:06] [STATE_MANAGER] [INFO] Configuração: 2 camadas, 12 itens por camada
+[2025-07-30 12:36:06] [STATE_MANAGER] [INFO] Memória espacial: Ativada
+[2025-07-30 12:36:06] [VISUALIZER] [INFO] Visualizer inicializado com configurações de desenho
+[2025-07-30 12:36:06] [SIAC_APP] [INFO] Todos os módulos carregados com sucesso
+[2025-07-30 12:36:06] [SIAC_APP] [INFO] Tentando abrir fonte de vídeo: 0
+[2025-07-30 12:36:43] [SIAC_APP] [INFO] Fonte de vídeo aberta com sucesso. Iniciando processamento...
+[2025-07-30 12:36:43] [SIAC_APP] [INFO] Pressione 'q' para encerrar o sistema
+[2025-07-30 12:36:47] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-30 12:36:47] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-30 12:38:04] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-30 12:38:04] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-30 12:38:04] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-30 12:38:07] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:38:07] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:38:07] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:38:09] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 4 → 9 em 0.2s
+[2025-07-30 12:38:12] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:38:12] [STATE_MANAGER] [INFO] Memória espacial: 0/9 itens são novos
+[2025-07-30 12:38:12] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:38:12] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:38:12] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:38:14] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:38:14] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:38:14] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:38:17] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 8 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:38:18] [STATE_MANAGER] [INFO] CAMADA 2 COMPLETA: 12/12 itens
+[2025-07-30 12:38:18] [STATE_MANAGER] [INFO] Posições da camada 2 armazenadas: 12 itens
+[2025-07-30 12:38:18] [STATE_MANAGER] [INFO] Última camada completa! Finalizando caixa. Total: 24 itens
+[2025-07-30 12:38:18] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → Caixa Completa - Todas as camadas completas
+[2025-07-30 12:38:48] [STATE_MANAGER] [INFO] Caixa completa removida. Reiniciando o ciclo para a próxima caixa
+[2025-07-30 12:38:48] [STATE_MANAGER] [INFO] Sistema resetado - reiniciando ciclo completo
+[2025-07-30 12:38:48] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: Caixa Completa → AGUARDANDO_CAIXA - Reset do sistema
+[2025-07-30 12:38:50] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-30 12:38:50] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-30 12:38:51] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-30 12:38:51] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-30 12:38:51] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-30 12:38:53] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:38:53] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:38:53] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:38:55] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 1 → 6 em 0.2s
+[2025-07-30 12:38:58] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:38:58] [STATE_MANAGER] [INFO] Memória espacial: 0/6 itens são novos
+[2025-07-30 12:38:58] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:38:58] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:38:58] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:39:01] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:39:01] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:39:01] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:39:03] [STATE_MANAGER] [WARNING] Salto suspeito detectado: 2 → 8 em 0.2s
+[2025-07-30 12:39:06] [STATE_MANAGER] [INFO] Carência completa. Validando salto com memória espacial...
+[2025-07-30 12:39:06] [STATE_MANAGER] [INFO] Memória espacial: 0/8 itens são novos
+[2025-07-30 12:39:06] [STATE_MANAGER] [WARNING] Salto rejeitado: apenas 0.0% dos itens são novos. Voltando para aguardar divisor.
+[2025-07-30 12:39:06] [STATE_MANAGER] [INFO] Retornando para aguardar divisor devido a salto inválido
+[2025-07-30 12:39:06] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Salto rejeitado - aguardando divisor
+[2025-07-30 12:39:07] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:39:07] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:39:07] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:39:10] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 5 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:39:13] [STATE_MANAGER] [INFO] CAMADA 2 COMPLETA: 12/12 itens
+[2025-07-30 12:39:13] [STATE_MANAGER] [INFO] Posições da camada 2 armazenadas: 12 itens
+[2025-07-30 12:39:13] [STATE_MANAGER] [INFO] Última camada completa! Finalizando caixa. Total: 24 itens
+[2025-07-30 12:39:13] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → Caixa Completa - Todas as camadas completas
+[2025-07-30 12:40:21] [SIAC_APP] [INFO] Comando de saída recebido pelo usuário
+[2025-07-30 12:40:21] [SIAC_APP] [INFO] Processamento finalizado. Total de frames processados: 1164
+[2025-07-30 12:48:40] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-30 12:48:40] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-30 12:48:40] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-30 12:48:40] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-30 12:48:40] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-30 12:48:40] [DETECTOR] [INFO] Carregando modelo ROI: modelos_producao/roi_detector.pt
+[2025-07-30 12:48:40] [DETECTOR] [INFO] Carregando modelo de itens: modelos_producao/item_detector.pt
+[2025-07-30 12:48:41] [DETECTOR] [INFO] Todos os modelos de detecção carregados com sucesso
+[2025-07-30 12:48:41] [DETECTOR] [INFO] Confiança mínima configurada: 0.4
+[2025-07-30 12:48:41] [DETECTOR] [INFO] Confiança para divisores: 0.3
+[2025-07-30 12:48:41] [DETECTOR] [INFO] Debug de divisores: Desativado
+[2025-07-30 12:48:41] [STATE_MANAGER] [INFO] StateManager inicializado
+[2025-07-30 12:48:41] [STATE_MANAGER] [INFO] Configuração: 2 camadas, 12 itens por camada
+[2025-07-30 12:48:41] [STATE_MANAGER] [INFO] Memória espacial: Ativada
+[2025-07-30 12:48:41] [VISUALIZER] [INFO] Visualizer inicializado com configurações de desenho
+[2025-07-30 12:48:41] [SIAC_APP] [INFO] Todos os módulos carregados com sucesso
+[2025-07-30 12:48:41] [SIAC_APP] [INFO] Tentando abrir fonte de vídeo: 0
+[2025-07-30 12:49:17] [SIAC_APP] [INFO] Fonte de vídeo aberta com sucesso. Iniciando processamento...
+[2025-07-30 12:49:17] [SIAC_APP] [INFO] Pressione 'q' para encerrar o sistema
+[2025-07-30 12:49:21] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-30 12:49:21] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-30 12:49:21] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-30 12:49:21] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-30 12:49:21] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-30 12:49:25] [STATE_MANAGER] [INFO] Divisor cobrindo todos os itens da camada 1. Preparando para avançar.
+[2025-07-30 12:49:25] [STATE_MANAGER] [INFO] Iniciando contagem para camada 2 (após divisor cobrir itens)
+[2025-07-30 12:49:25] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_DIVISOR → CONTANDO_ITENS - Avançando para camada 2
+[2025-07-30 12:49:30] [STATE_MANAGER] [INFO] Camada 2 estabelecida com 5 itens. Divisor não é mais obrigatório.
+[2025-07-30 12:49:32] [STATE_MANAGER] [INFO] CAMADA 2 COMPLETA: 12/12 itens
+[2025-07-30 12:49:32] [STATE_MANAGER] [INFO] Posições da camada 2 armazenadas: 12 itens
+[2025-07-30 12:49:32] [STATE_MANAGER] [INFO] Última camada completa! Finalizando caixa. Total: 24 itens
+[2025-07-30 12:49:32] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → Caixa Completa - Todas as camadas completas
+[2025-07-30 12:49:53] [SIAC_APP] [INFO] Comando de saída recebido pelo usuário
+[2025-07-30 12:49:54] [SIAC_APP] [INFO] Processamento finalizado. Total de frames processados: 180

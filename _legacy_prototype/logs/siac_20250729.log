@@ -1,0 +1,59 @@
+[2025-07-29 11:13:12] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-29 11:13:12] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-29 11:13:12] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-29 11:13:12] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-29 11:13:12] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-29 11:13:12] [DETECTOR] [ERROR] ERRO: FileNotFoundError: Modelo ROI não encontrado: modelos_producao/roi_detector.pt - Contexto: Carregamento dos modelos
+[2025-07-29 11:13:12] [SIAC_APP] [ERROR] ERRO: FileNotFoundError: Modelo ROI não encontrado: modelos_producao/roi_detector.pt - Contexto: Inicialização dos módulos
+[2025-07-29 11:15:12] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-29 11:15:12] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-29 11:15:12] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-29 11:15:12] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-29 11:15:12] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-29 11:15:12] [DETECTOR] [INFO] Carregando modelo ROI: modelos_producao/roi_detector.pt
+[2025-07-29 11:15:13] [DETECTOR] [INFO] Carregando modelo de itens: modelos_producao/item_detector.pt
+[2025-07-29 11:15:13] [DETECTOR] [INFO] Todos os modelos de detecção carregados com sucesso
+[2025-07-29 11:15:13] [DETECTOR] [INFO] Confiança mínima configurada: 0.4
+[2025-07-29 11:15:13] [DETECTOR] [INFO] Confiança para divisores: 0.3
+[2025-07-29 11:15:13] [DETECTOR] [INFO] Debug de divisores: Desativado
+[2025-07-29 11:15:13] [STATE_MANAGER] [INFO] StateManager inicializado
+[2025-07-29 11:15:13] [STATE_MANAGER] [INFO] Configuração: 2 camadas, 12 itens por camada
+[2025-07-29 11:15:13] [STATE_MANAGER] [INFO] Memória espacial: Ativada
+[2025-07-29 11:15:13] [VISUALIZER] [INFO] Visualizer inicializado com configurações de desenho
+[2025-07-29 11:15:13] [SIAC_APP] [INFO] Todos os módulos carregados com sucesso
+[2025-07-29 11:15:13] [SIAC_APP] [INFO] Tentando abrir fonte de vídeo: 0
+[2025-07-29 11:15:51] [SIAC_APP] [INFO] Fonte de vídeo aberta com sucesso. Iniciando processamento...
+[2025-07-29 11:15:51] [SIAC_APP] [INFO] Pressione 'q' para encerrar o sistema
+[2025-07-29 11:15:57] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-29 11:15:57] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-29 11:15:57] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-29 11:15:57] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-29 11:15:57] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-29 11:16:15] [SIAC_APP] [INFO] Comando de saída recebido pelo usuário
+[2025-07-29 11:16:15] [SIAC_APP] [INFO] Processamento finalizado. Total de frames processados: 101
+[2025-07-29 11:19:41] [SIAC_SYSTEM] [INFO] Sistema de logging inicializado
+[2025-07-29 11:19:41] [SIAC_SYSTEM] [INFO] Nível de log: INFO
+[2025-07-29 11:19:41] [SIAC_SYSTEM] [INFO] Log em arquivo: Habilitado
+[2025-07-29 11:19:41] [SIAC_APP] [INFO] Iniciando carregamento dos módulos do sistema SIAC
+[2025-07-29 11:19:41] [DETECTOR] [INFO] Iniciando carregamento dos modelos de detecção
+[2025-07-29 11:19:41] [DETECTOR] [INFO] Carregando modelo ROI: modelos_producao/roi_detector.pt
+[2025-07-29 11:19:42] [DETECTOR] [INFO] Carregando modelo de itens: modelos_producao/item_detector.pt
+[2025-07-29 11:19:42] [DETECTOR] [INFO] Todos os modelos de detecção carregados com sucesso
+[2025-07-29 11:19:42] [DETECTOR] [INFO] Confiança mínima configurada: 0.4
+[2025-07-29 11:19:42] [DETECTOR] [INFO] Confiança para divisores: 0.3
+[2025-07-29 11:19:42] [DETECTOR] [INFO] Debug de divisores: Desativado
+[2025-07-29 11:19:42] [STATE_MANAGER] [INFO] StateManager inicializado
+[2025-07-29 11:19:42] [STATE_MANAGER] [INFO] Configuração: 2 camadas, 12 itens por camada
+[2025-07-29 11:19:42] [STATE_MANAGER] [INFO] Memória espacial: Ativada
+[2025-07-29 11:19:42] [VISUALIZER] [INFO] Visualizer inicializado com configurações de desenho
+[2025-07-29 11:19:42] [SIAC_APP] [INFO] Todos os módulos carregados com sucesso
+[2025-07-29 11:19:42] [SIAC_APP] [INFO] Tentando abrir fonte de vídeo: 0
+[2025-07-29 11:20:19] [SIAC_APP] [INFO] Fonte de vídeo aberta com sucesso. Iniciando processamento...
+[2025-07-29 11:20:19] [SIAC_APP] [INFO] Pressione 'q' para encerrar o sistema
+[2025-07-29 11:20:23] [STATE_MANAGER] [INFO] Caixa detectada com estabilidade
+[2025-07-29 11:20:23] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: AGUARDANDO_CAIXA → CONTANDO_ITENS - ROI estável detectada
+[2025-07-29 11:20:23] [STATE_MANAGER] [INFO] CAMADA 1 COMPLETA: 12/12 itens
+[2025-07-29 11:20:23] [STATE_MANAGER] [INFO] Posições da camada 1 armazenadas: 12 itens
+[2025-07-29 11:20:23] [STATE_MANAGER] [INFO] TRANSIÇÃO DE ESTADO: CONTANDO_ITENS → AGUARDANDO_DIVISOR - Camada 1 completa - aguardando divisor
+[2025-07-29 11:20:45] [SIAC_APP] [INFO] Comando de saída recebido pelo usuário
+[2025-07-29 11:20:46] [SIAC_APP] [INFO] Processamento finalizado. Total de frames processados: 123

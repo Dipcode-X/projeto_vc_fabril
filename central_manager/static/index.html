@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏭 SIAC Industrial Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1 class="logo">
+                    <span class="logo-icon">🏭</span>
+                    SIAC Industrial
+                </h1>
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item active">Dashboard</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="status-indicator" id="connectionStatus">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">Conectando...</span>
+                </div>
+                <div class="system-time" id="systemTime"></div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Loading State -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+                <p>Carregando dados do sistema...</p>
+            </div>
+
+            <!-- Dashboard Overview -->
+            <section class="dashboard-overview" id="dashboardOverview">
+                <div class="overview-cards">
+                    <div class="card status-card">
+                        <div class="card-header">
+                            <h3>📊 Status Geral</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-value" id="systemStatus">🟡 Inicializando</span>
+                                <span class="metric-label">Sistema</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card cameras-card">
+                        <div class="card-header">
+                            <h3>📹 Câmeras</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-value" id="camerasActive">0</span>
+                                <span class="metric-label">Ativas</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-value" id="camerasTotal">0</span>
+                                <span class="metric-label">Total</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card alerts-card">
+                        <div class="card-header">
+                            <h3>⚠️ Alertas</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="metric">
+                                <span class="metric-value" id="alertsPending">0</span>
+                                <span class="metric-label">Pendentes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Setores Grid -->
+            <section class="setores-section">
+                <div class="section-header">
+                    <h2>🏢 Setores</h2>
+                    <button class="btn btn-primary" id="refreshBtn">
+                        <span class="btn-icon">🔄</span>
+                        Atualizar
+                    </button>
+                </div>
+                
+                <div class="setores-grid" id="setoresGrid">
+                    <!-- Setores serão carregados dinamicamente -->
+                </div>
+            </section>
+
+            <!-- Camera Detail Modal -->
+            <div class="modal-overlay" id="cameraModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 id="modalTitle">📹 Detalhes da Câmera</h3>
+                        <button class="modal-close" id="modalClose">&times;</button>
+                    </div>
+                    <div class="modal-content" id="modalContent">
+                        <!-- Conteúdo será carregado dinamicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Selection Modal -->
+            <div class="modal-overlay" id="productModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>📦 Selecionar Produto</h3>
+                        <button class="modal-close" id="productModalClose">&times;</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="product-list" id="productList">
+                            <!-- Lista de produtos será carregada -->
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary" id="cancelProductBtn">Cancelar</button>
+                            <button class="btn btn-primary" id="applyProductBtn">Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
