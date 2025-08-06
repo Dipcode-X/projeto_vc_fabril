@@ -122,7 +122,9 @@ class Visualizer:
     def desenhar_controles(self, frame, height):
         """Desenha o texto de ajuda para os controles do teclado."""
         y_offset = height - 70
-        cv2.putText(frame, "Controles:", (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.colors['text'], 1)
-        cv2.putText(frame, "- SPACE: Pausa", (10, y_offset + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.4, self.colors['text'], 1)
-        cv2.putText(frame, "- D: Toggle YOLO", (10, y_offset + 35), cv2.FONT_HERSHEY_SIMPLEX, 0.4, self.colors['text'], 1)
-        cv2.putText(frame, "- R: Reset", (10, y_offset + 50), cv2.FONT_HERSHEY_SIMPLEX, 0.4, self.colors['text'], 1)
+        font_scale = 0.4
+        line_height = 15
+        cv2.putText(frame, "Esc: Sair", (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, font_scale, self.colors['text'], 1)
+        cv2.putText(frame, "Space: Pausar/Continuar", (10, y_offset + line_height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, self.colors['text'], 1)
+        cv2.putText(frame, "D: Toggle YOLO", (10, y_offset + 2 * line_height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, self.colors['text'], 1)
+        cv2.putText(frame, "R: Reset", (10, y_offset + 3 * line_height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, self.colors['text'], 1)
