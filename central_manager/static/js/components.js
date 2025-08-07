@@ -32,7 +32,6 @@ export class UIComponents {
         card.innerHTML = `
             <div class="setor-header">
                 <div class="setor-title">${setor.nome}</div>
-                <div class="setor-description">${setor.descricao || 'Setor de produção'}</div>
             </div>
             
             <div class="setor-stats">

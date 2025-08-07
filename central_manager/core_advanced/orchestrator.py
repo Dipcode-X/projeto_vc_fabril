@@ -49,3 +49,10 @@ class Orchestrator:
     def get_camera_data(self, camera_source):
         """Retorna os dados (processador e fila) de uma câmera específica."""
         return self.processors.get(camera_source)
+
+    def get_all_cameras_summary(self):
+        """Retorna uma lista de resumos do estado de todas as câmeras."""
+        return [
+            data['processor'].get_status()
+            for data in self.processors.values()
+        ]

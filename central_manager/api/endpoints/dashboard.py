@@ -2,36 +2,25 @@
 Endpoints para dashboard e monitoramento
 """
 
-from fastapi import APIRouter, WebSocket
+from fastapi import APIRouter, Request
 
-router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+router = APIRouter(tags=["Dashboard"])
 
-@router.get("/overview")
-async def get_dashboard_overview():
-    """Retorna visão geral do sistema para dashboard"""
-    # TODO: Implementar
-    pass
+@router.get("/dashboard")
+async def get_dashboard_overview(request: Request):
+    """Retorna visão geral do sistema para o dashboard inicial."""
+    orchestrator = request.app.state.orchestrator
+    
+    # Em uma aplicação real, estes dados viriam de um banco ou de uma camada de serviço
+    # Por enquanto, vamos simular e pegar dados básicos do orquestrador
+    
+    all_cameras = orchestrator.get_all_cameras_summary()
+    total_cameras = len(all_cameras)
+    active_cameras = sum(1 for cam in all_cameras if cam.get('running'))
 
-@router.get("/sectors")
-async def list_sectors():
-    """Lista todos os setores disponíveis"""
-    # TODO: Implementar
-    pass
-
-@router.get("/sectors/{sector_id}/lines")
-async def list_production_lines(sector_id: str):
-    """Lista linhas de produção de um setor"""
-    # TODO: Implementar
-    pass
-
-@router.get("/metrics/realtime")
-async def get_realtime_metrics():
-    """Retorna métricas em tempo real"""
-    # TODO: Implementar
-    pass
-
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket para atualizações em tempo real"""
-    # TODO: Implementar
-    pass
+    return {
+        "system_status": "Online" if total_cameras > 0 and active_cameras > 0 else "Parcialmente Online",
+        "cameras_active": active_cameras,
+        "cameras_total": total_cameras,
+        "alerts_pending": 0, # Placeholder
+    }

@@ -9,6 +9,8 @@ import { ToastNotification } from './notifications.js';
 
 class SiacDashboard {
     constructor() {
+        this.apiBase = '/api/v1'; // Base URL for all API calls
+        this.wsUrl = `ws://${window.location.host}${this.apiBase}/dashboard`;
         this.ws = null;
         this.ui = new UIComponents();
         this.toast = new ToastNotification();
@@ -115,21 +117,21 @@ class SiacDashboard {
         
         try {
             // Load dashboard data
-            const dashboardResponse = await fetch('/dashboard');
+            const dashboardResponse = await fetch(`${this.apiBase}/dashboard`);
             if (!dashboardResponse.ok) {
                 throw new Error(`Dashboard API error: ${dashboardResponse.status}`);
             }
             const dashboardData = await dashboardResponse.json();
             
             // Load setores
-            const setoresResponse = await fetch('/setores');
+            const setoresResponse = await fetch(`${this.apiBase}/setores`);
             if (!setoresResponse.ok) {
                 throw new Error(`Setores API error: ${setoresResponse.status}`);
             }
             const setores = await setoresResponse.json();
             
             // Load produtos
-            const produtosResponse = await fetch('/produtos');
+            const produtosResponse = await fetch(`${this.apiBase}/produtos`);
             if (!produtosResponse.ok) {
                 throw new Error(`Produtos API error: ${produtosResponse.status}`);
             }
@@ -160,7 +162,7 @@ class SiacDashboard {
     
     async loadCamerasData() {
         try {
-            const camerasResponse = await fetch('/cameras');
+            const camerasResponse = await fetch(`${this.apiBase}/cameras`);
             if (!camerasResponse.ok) {
                 throw new Error(`Cameras API error: ${camerasResponse.status}`);
             }
@@ -170,7 +172,7 @@ class SiacDashboard {
             // Load status for each camera
             for (const camera of this.data.cameras) {
                 try {
-                    const statusResponse = await fetch(`/cameras/${camera.id}/status`);
+                    const statusResponse = await fetch(`${this.apiBase}/cameras/${camera.id}/status`);
                     if (statusResponse.ok) {
                         camera.status = await statusResponse.json();
                     } else {
@@ -191,7 +193,7 @@ class SiacDashboard {
     setupWebSocket() {
         console.log('🔌 Configurando WebSocket...');
         
-        this.ws = new WebSocketManager('ws://localhost:8000/ws/dashboard');
+        this.ws = new WebSocketManager(this.wsUrl);
         
         this.ws.onMessage = this.handleWebSocketMessage;
         
@@ -216,32 +218,23 @@ class SiacDashboard {
         this.ws.connect();
     }
     
-    handleWebSocketMessage(data) {
-        console.log('📡 Mensagem WebSocket recebida:', data);
-        
-        switch (data.type) {
-            case 'status':
-                this.handleStatusUpdate(data.data);
-                break;
-                
-            case 'camera_status_changed':
-                this.handleCameraStatusChange(data.data);
-                break;
-                
-            case 'detection_update':
-                this.handleDetectionUpdate(data.data);
-                break;
-                
-            case 'alert_triggered':
-                this.handleAlert(data.data);
-                break;
-                
-            case 'pong':
-                // Heartbeat response
-                break;
-                
-            default:
-                console.log('Tipo de mensagem desconhecido:', data.type);
+    handleWebSocketMessage(message) {
+        if (message.type === 'dashboard_update') {
+            this.updateDashboardCards(message.data);
+            this.updateCameraListInSectors(message.data.cameras);
+        } else if (message.type === 'status') {
+            this.handleStatusUpdate(message.data);
+        } else if (message.type === 'camera_status_changed') {
+            this.handleCameraStatusChange(message.data);
+        } else if (message.type === 'detection_update') {
+            this.handleDetectionUpdate(message.data);
+        } else if (message.type === 'alert_triggered') {
+            this.handleAlert(message.data);
+        } else if (message.type === 'pong') {
+            // Heartbeat response
+        } else {
+            console.warn('Tipo de mensagem desconhecido:', message.type);
+            console.log('Dados recebidos:', message);
         }
     }
     
@@ -417,7 +410,7 @@ class SiacDashboard {
         console.log(`🎥 ${action} câmera ${cameraId}...`);
         
         try {
-            const response = await fetch(`/cameras/${cameraId}/${action}`, {
+            const response = await fetch(`${this.apiBase}/cameras/${cameraId}/${action}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -502,7 +495,7 @@ class SiacDashboard {
         console.log(`📦 Alterando produto da câmera ${this.selectedCamera.id} para ${this.selectedProduct}...`);
         
         try {
-            const response = await fetch(`/cameras/${this.selectedCamera.id}/produto`, {
+            const response = await fetch(`${this.apiBase}/cameras/${this.selectedCamera.id}/produto`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -629,6 +622,32 @@ class SiacDashboard {
                 </div>
             `;
         }
+    }
+    
+    updateDashboardCards(data) {
+        const statusElement = document.getElementById('systemStatus');
+        if (statusElement) {
+            statusElement.textContent = data.status === 'Online' ? '🟢 Online' : '🔴 Offline';
+        }
+
+        const camerasActiveElement = document.getElementById('camerasActive');
+        if (camerasActiveElement) {
+            camerasActiveElement.textContent = data.cameras_ativas || 0;
+        }
+
+        const camerasTotalElement = document.getElementById('camerasTotal');
+        if (camerasTotalElement) {
+            camerasTotalElement.textContent = data.total_cameras || 0;
+        }
+
+        const alertsElement = document.getElementById('alertsPending');
+        if (alertsElement) {
+            alertsElement.textContent = data.alertas_pendentes || 0;
+        }
+    }
+    
+    updateCameraListInSectors(cameras) {
+        // TO DO: implement this method
     }
 }
 
