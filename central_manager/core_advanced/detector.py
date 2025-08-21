@@ -1,10 +1,15 @@
 import os
 from ultralytics import YOLO
 
-# Configurações dos modelos (movido do legacy)
+# --- Path Correction ---
+# Build paths relative to this file's location to avoid FileNotFoundError
+DETECTOR_DIR = os.path.dirname(os.path.abspath(__file__))
+MODELS_DIR = os.path.join(os.path.dirname(DETECTOR_DIR), 'models')
+
+# Configurações dos modelos com caminhos corrigidos e robustos
 MODELOS = {
-    'item_detector': '_legacy_prototype/modelos_producao/item_detector.pt',
-    'roi_detector': '_legacy_prototype/modelos_producao/roi_detector.pt'
+    'item_detector': os.path.join(MODELS_DIR, 'item_detector.pt'),
+    'roi_detector': os.path.join(MODELS_DIR, 'roi_detector.pt')
 }
 
 class YOLODetector:

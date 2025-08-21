@@ -24,26 +24,17 @@ api_router.include_router(websocket.router)
 # --- Application Setup ---
 def create_app():
     """Creates and configures the FastAPI application and its resources."""
-    # --- Mock Data / Config ---
-    # No futuro, isso virá de um banco de dados
-    REGISTERED_CAMERAS = [0, 1, 2] # Câmeras homologadas no sistema
 
     # --- Lifespan Events (Recommended Way) ---
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         """Application startup and shutdown logic."""
         print("--- Application Startup ---")
-        # Store shared state
-        app.state.registered_cameras = REGISTERED_CAMERAS
 
-        # Initialize and start the orchestrator
+        # Initialize and start the orchestrator.
+        # The orchestrator now discovers cameras from the DB upon starting.
         orchestrator = Orchestrator()
         app.state.orchestrator = orchestrator
-        
-        # Adiciona todas as câmeras registradas ao orquestrador
-        for cam_id in REGISTERED_CAMERAS:
-            orchestrator.add_camera(cam_id)
-        
         orchestrator.start()
         print("Orchestrator started.")
         

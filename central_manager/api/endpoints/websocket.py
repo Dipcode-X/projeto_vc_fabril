@@ -35,10 +35,8 @@ async def send_dashboard_updates(app):
             dashboard_payload = {
                 "type": "dashboard_update",
                 "data": {
-                    "status": "Online",
                     "cameras_ativas": cameras_ativas,
                     "total_cameras": total_cameras,
-                    "alertas_pendentes": 0,  # Placeholder
                     "cameras": summary_data
                 }
             }

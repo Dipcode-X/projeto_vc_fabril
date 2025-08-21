@@ -3,8 +3,11 @@ from collections import deque
 import math
 import traceback
 
-from .config import STATE_CONFIG
+from .config import STATE_CONFIG, MQTT_CONFIG
 from .simple_logger import SimpleLogger
+from .alert_manager import AlertManager
+
+
 
 
 class SimpleStateManager:
@@ -13,7 +16,18 @@ class SimpleStateManager:
     def __init__(self):
         self.logger = SimpleLogger("STATE_MANAGER")
         self.config = STATE_CONFIG # Usa a configuração do próprio módulo
-        
+
+        try:
+            self.alert_manager = AlertManager(
+            broker_ip=MQTT_CONFIG['broker_ip'],
+            broker_port=MQTT_CONFIG['broker_port'],
+            client_id=MQTT_CONFIG['client_id']
+        )
+            self.logger.info("AlertManager inicializado e tentando conectar ao MQTT.")
+        except Exception as e:
+            self.logger.error(f"Falha ao inicializar AlertManager: {e}")
+            self.alert_manager = None
+
         # Estados
         self.ESTADOS = self.config['estados']
         self.PERFIL_CAIXA = self.config['perfil_caixa']
@@ -45,6 +59,7 @@ class SimpleStateManager:
         self.ultimo_alerta_tempo = None
         self.ultimo_alerta_tipo = None
         self.primeira_deteccao = True
+        self.ultima_contagem_valida = 0 # Guarda a última contagem antes de perder a ROI
         
         # Lógica de camada estabelecida
         self.camada_2_estabelecida = False
@@ -57,6 +72,48 @@ class SimpleStateManager:
         self.divisor_estava_presente_frame_anterior = False  # Estado anterior do divisor
         
         self.logger.info("StateManager AVANÇADO inicializado com memória espacial, detecção de saltos e validação por divisor")
+    
+    def _enviar_alerta_caixa_incompleta(self, contagem_no_momento_da_perda):
+        """Envia um alerta para uma caixa removida com contagem de itens incompleta."""
+        itens_faltantes = self.PERFIL_CAIXA['itens_por_camada'] - contagem_no_momento_da_perda
+        mensagem = (
+            f"Caixa removida INCOMPLETA na camada {self.camada_atual}. "
+            f"Contagem: {contagem_no_momento_da_perda}/{self.PERFIL_CAIXA['itens_por_camada']}. "
+            f"Faltaram {itens_faltantes} itens."
+        )
+        self.logger.error(f"🚨 ALERTA: {mensagem}")
+        
+        # Preparar payload JSON para MQTT
+        import json
+        payload = {
+            "tipo_alerta": "caixa_incompleta",
+            "camada_atual": self.camada_atual,
+            "contagem_atual": contagem_no_momento_da_perda,
+            "total_esperado": self.PERFIL_CAIXA['itens_por_camada'],
+            "mensagem": mensagem
+        }
+        
+        # Enviar via MQTT usando o método correto
+        topic = "siac/alertas/caixa_incompleta"
+        self.alert_manager.send_alert(topic, json.dumps(payload))
+
+    def _enviar_alerta_caixa_incompleta_original(self):
+        """Envia um alerta de caixa removida incompleta via MQTT."""
+        if not self.alert_manager:
+            self.logger.warning("AlertManager não inicializado. Alerta não pode ser enviado.")
+            return
+
+        try:
+            payload = {
+                "tipo_alerta": "caixa_incompleta",
+                "mensagem": f"Caixa removida com {self.contagem_estabilizada} de {self.PERFIL_CAIXA['itens_por_camada']} itens.",
+                "camada_atual": self.camada_atual,
+                "contagem_atual": self.contagem_estabilizada
+            }
+            self.alert_manager.publish_alert(payload)
+            self.logger.info(f"Alerta de caixa incompleta enviado: {payload['mensagem']}")
+        except Exception as e:
+            self.logger.error(f"Falha ao enviar alerta de caixa incompleta: {e}")
     
     def _obter_valores_estabilizados(self):
         """Obtém valores estabilizados dos buffers"""
@@ -480,6 +537,11 @@ class SimpleStateManager:
                 self.tempo_inicio_validacao_modo_livre = None
                 self.modo_livre_habilitado = False
         
+        # Salvar a última contagem válida enquanto a caixa está presente e sendo contada
+        if roi_estavel and self.status_sistema == self.ESTADOS['CONTANDO_ITENS']:
+            if contagem_atual > 0:
+                self.ultima_contagem_valida = contagem_atual
+
         # APLICAR DETECÇÃO DE SALTOS na camada 2
         if self.camada_atual == 2:
             if not self._processar_deteccao_saltos(contagem_atual, itens_detectados):
@@ -495,11 +557,20 @@ class SimpleStateManager:
             if roi_estavel:
                 self._transitar_para(self.ESTADOS['CONTANDO_ITENS'], "ROI detectada")
         
+# ...
         elif estado_atual == self.ESTADOS['CONTANDO_ITENS']:
             if not roi_estavel:
-                if self._pode_alertar("caixa_incompleta", 5.0) and self.contagem_estabilizada > 0:
-                    self.logger.error(f"🚨 ALERTA: Caixa removida INCOMPLETA! Camada {self.camada_atual}: {self.contagem_estabilizada}/{self.PERFIL_CAIXA['itens_por_camada']} itens")
+                # Condição para caixa removida incompleta - USA A ÚLTIMA CONTAGEM VÁLIDA
+                if self.ultima_contagem_valida > 0 and self.ultima_contagem_valida < self.PERFIL_CAIXA['itens_por_camada']:
+                    if self._pode_alertar("caixa_incompleta", 3.0):
+                        self._enviar_alerta_caixa_incompleta(self.ultima_contagem_valida)
+                        self.logger.info("Caixa incompleta removida. Resetando o sistema.")
+                        self._resetar_sistema() # CORREÇÃO: Resetar completamente
+                        return
+                
+                # Se a contagem for 0 ou o alerta não puder ser enviado, apenas transita
                 self._transitar_para(self.ESTADOS['AGUARDANDO_CAIXA'], "ROI perdida")
+                self._resetar_contagem_para_novo_ciclo() # Limpa a última contagem válida
                 return
             
             # Verificar se camada está completa
@@ -568,6 +639,11 @@ class SimpleStateManager:
                 self._transitar_para(self.ESTADOS['CONTANDO_ITENS'], "ROI reapareceu")
                 self.caixa_ausente_desde = None
     
+    def _resetar_contagem_para_novo_ciclo(self):
+        """Reseta a contagem para um novo ciclo sem resetar o sistema inteiro."""
+        self.ultima_contagem_valida = 0
+        self.logger.debug("Última contagem válida resetada para novo ciclo.")
+
     def _resetar_sistema(self):
         """Reset completo do sistema"""
         self.logger.info("🔄 Sistema resetado")
@@ -575,6 +651,7 @@ class SimpleStateManager:
         self.camada_atual = 1
         self.contagens_por_camada = {1: 0, 2: 0}
         self.contagem_estabilizada = 0
+        self.ultima_contagem_valida = 0 # Resetar também no reset geral
         self.buffer_roi.clear()
         self.buffer_contagem_itens.clear()
         self.buffer_divisor_presente.clear()

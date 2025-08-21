@@ -32,3 +32,16 @@ STATE_CONFIG = {
     'tempo_maximo_instabilidade_divisor': 2.0,  # Tempo após perda do divisor considerado suspeito
     'usar_validacao_divisor_salto': True,  # Habilitar validação por divisor
 }
+
+MQTT_CONFIG = {
+    'broker_ip': 'localhost', # IP do broker MQTT
+    'broker_port': 1883, # Porta do broker MQTT
+    'client_id': 'siac_central_manager', # ID do cliente para conexão
+    'topics': {
+        'caixa_incompleta': 'siac/alertas/caixa_incompleta',
+        'caixa_removida': 'siac/alertas/caixa_removida',
+        'caixa_completa': 'siac/alertas/caixa_completa',
+        'falso_positivo': 'siac/alertas/falso_positivo',
+        'erro_sistema': 'siac/alertas/erro_sistema'
+    }
+}

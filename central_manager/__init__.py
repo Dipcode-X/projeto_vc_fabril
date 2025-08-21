@@ -1,1 +1,1 @@
-# Este arquivo pode estar vazio.
+# This file makes 'central_manager' a top-level package.

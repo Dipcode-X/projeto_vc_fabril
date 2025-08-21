@@ -625,11 +625,6 @@ class SiacDashboard {
     }
     
     updateDashboardCards(data) {
-        const statusElement = document.getElementById('systemStatus');
-        if (statusElement) {
-            statusElement.textContent = data.status === 'Online' ? '🟢 Online' : '🔴 Offline';
-        }
-
         const camerasActiveElement = document.getElementById('camerasActive');
         if (camerasActiveElement) {
             camerasActiveElement.textContent = data.cameras_ativas || 0;
@@ -638,11 +633,6 @@ class SiacDashboard {
         const camerasTotalElement = document.getElementById('camerasTotal');
         if (camerasTotalElement) {
             camerasTotalElement.textContent = data.total_cameras || 0;
-        }
-
-        const alertsElement = document.getElementById('alertsPending');
-        if (alertsElement) {
-            alertsElement.textContent = data.alertas_pendentes || 0;
         }
     }
     

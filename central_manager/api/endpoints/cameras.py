@@ -53,14 +53,33 @@ async def get_cameras(request: Request):
 
 @router.get("/{camera_id}/status", summary="Obtém o status detalhado de uma câmera")
 async def get_camera_status(camera_id: int, request: Request):
-    """Retorna o status em tempo real de uma câmera específica."""
+    """Retorna status detalhado de uma câmera específica."""
     orchestrator = request.app.state.orchestrator
-    camera_processor = orchestrator.processors.get(camera_id, {}).get('processor')
+    camera_data = orchestrator.get_camera_data(camera_id)
+    
+    if not camera_data:
+        raise HTTPException(status_code=404, detail="Câmera não encontrada")
+    
+    status = camera_data['processor'].get_status()
+    return status
 
-    if not camera_processor:
-        raise HTTPException(status_code=404, detail=f"Câmera {camera_id} não encontrada ou não está ativa.")
-
-    return camera_processor.get_status()
+@router.post("/rescan")
+async def rescan_cameras(request: Request):
+    """Força uma nova busca por câmeras disponíveis."""
+    try:
+        orchestrator = request.app.state.orchestrator
+        result = orchestrator.rescan_cameras()
+        
+        return {
+            "success": True,
+            "message": "Rebusca de câmeras concluída com sucesso",
+            "data": result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erro durante rebusca de câmeras: {str(e)}"
+        )
 
 @router.post("/{camera_id}/start")
 async def start_camera(camera_id: int, request: Request):

@@ -5,23 +5,13 @@ Gerencia conexões SQLite e operações CRUD
 
 import sqlite3
 import logging
+import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from contextlib import contextmanager
 from datetime import datetime
 
-from ..models.database_models import (
-    # Create Models
-    SetorCreate, LinhaCreate, ProdutoCreate, CameraCreate, 
-    DispositivoAlertaCreate, ProducaoDadosCreate, AlertaHistoricoCreate,
-    
-    # Response Models
-    Setor, Linha, Produto, Camera, DispositivoAlerta,
-    ProducaoDados, AlertaHistorico,
-    
-    # Enums
-    StatusEnum, EstadoProducaoEnum, SeveridadeEnum, TipoDispositivoEnum
-)
+from ..models import database_models
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +76,7 @@ class DatabaseManager:
     # SETORES CRUD
     # =====================================================
     
-    def create_setor(self, setor: SetorCreate) -> Setor:
+    def create_setor(self, setor: database_models.SetorCreate) -> database_models.Setor:
         """Cria um novo setor"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -101,7 +91,7 @@ class DatabaseManager:
             
             return self.get_setor(setor_id)
     
-    def get_setor(self, setor_id: int) -> Optional[Setor]:
+    def get_setor(self, setor_id: int) -> Optional[database_models.Setor]:
         """Busca setor por ID"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -112,10 +102,10 @@ class DatabaseManager:
             
             row = cursor.fetchone()
             if row:
-                return Setor(**dict(row))
+                return database_models.Setor(**dict(row))
             return None
     
-    def get_setores(self, ativo_only: bool = True) -> List[Setor]:
+    def get_setores(self, ativo_only: bool = True) -> List[database_models.Setor]:
         """Lista todos os setores"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -128,13 +118,13 @@ class DatabaseManager:
             cursor.execute(query)
             rows = cursor.fetchall()
             
-            return [Setor(**dict(row)) for row in rows]
+            return [database_models.Setor(**dict(row)) for row in rows]
     
     # =====================================================
     # LINHAS CRUD
     # =====================================================
     
-    def create_linha(self, linha: LinhaCreate) -> Linha:
+    def create_linha(self, linha: database_models.LinhaCreate) -> database_models.Linha:
         """Cria uma nova linha"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -149,7 +139,7 @@ class DatabaseManager:
             
             return self.get_linha(linha_id)
     
-    def get_linha(self, linha_id: int) -> Optional[Linha]:
+    def get_linha(self, linha_id: int) -> Optional[database_models.Linha]:
         """Busca linha por ID"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -169,10 +159,10 @@ class DatabaseManager:
                     setor = self.get_setor(linha_data['setor_id'])
                     linha_data['setor'] = setor
                 
-                return Linha(**linha_data)
+                return database_models.Linha(**linha_data)
             return None
     
-    def get_linhas_by_setor(self, setor_id: int) -> List[Linha]:
+    def get_linhas_by_setor(self, setor_id: int) -> List[database_models.Linha]:
         """Lista linhas de um setor"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -184,13 +174,13 @@ class DatabaseManager:
             """, (setor_id,))
             
             rows = cursor.fetchall()
-            return [Linha(**dict(row)) for row in rows]
+            return [database_models.Linha(**dict(row)) for row in rows]
     
     # =====================================================
     # PRODUTOS CRUD
     # =====================================================
     
-    def create_produto(self, produto: ProdutoCreate) -> Produto:
+    def create_produto(self, produto: database_models.ProdutoCreate) -> database_models.Produto:
         """Cria um novo produto"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -220,7 +210,7 @@ class DatabaseManager:
             
             return self.get_produto(produto_id)
     
-    def get_produto(self, produto_id: int) -> Optional[Produto]:
+    def get_produto(self, produto_id: int) -> Optional[database_models.Produto]:
         """Busca produto por ID"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -233,16 +223,15 @@ class DatabaseManager:
             if row:
                 produto_data = dict(row)
                 # Parse JSON config
-                import json
                 try:
                     produto_data['config_json'] = json.loads(produto_data['config_json'])
                 except:
                     produto_data['config_json'] = {}
                 
-                return Produto(**produto_data)
+                return database_models.Produto(**produto_data)
             return None
     
-    def get_produtos(self, ativo_only: bool = True) -> List[Produto]:
+    def get_produtos(self, ativo_only: bool = True) -> List[database_models.Produto]:
         """Lista todos os produtos"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -259,13 +248,12 @@ class DatabaseManager:
             for row in rows:
                 produto_data = dict(row)
                 # Parse JSON config
-                import json
                 try:
                     produto_data['config_json'] = json.loads(produto_data['config_json'])
                 except:
                     produto_data['config_json'] = {}
                 
-                produtos.append(Produto(**produto_data))
+                produtos.append(database_models.Produto(**produto_data))
             
             return produtos
     
@@ -273,7 +261,7 @@ class DatabaseManager:
     # CAMERAS CRUD
     # =====================================================
     
-    def create_camera(self, camera: CameraCreate) -> Camera:
+    def create_camera(self, camera: database_models.CameraCreate) -> database_models.Camera:
         """Cria uma nova câmera"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -295,7 +283,7 @@ class DatabaseManager:
             
             return self.get_camera(camera_id)
     
-    def get_camera(self, camera_id: int) -> Optional[Camera]:
+    def get_camera(self, camera_id: int) -> Optional[database_models.Camera]:
         """Busca câmera por ID"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -308,16 +296,15 @@ class DatabaseManager:
             if row:
                 camera_data = dict(row)
                 # Parse JSON config
-                import json
                 try:
                     camera_data['config_json'] = json.loads(camera_data['config_json'])
                 except:
                     camera_data['config_json'] = {}
                 
-                return Camera(**camera_data)
+                return database_models.Camera(**camera_data)
             return None
     
-    def get_cameras_by_linha(self, linha_id: int) -> List[Camera]:
+    def get_cameras_by_linha(self, linha_id: int) -> List[database_models.Camera]:
         """Lista câmeras de uma linha"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -334,17 +321,16 @@ class DatabaseManager:
             for row in rows:
                 camera_data = dict(row)
                 # Parse JSON config
-                import json
                 try:
                     camera_data['config_json'] = json.loads(camera_data['config_json'])
                 except:
                     camera_data['config_json'] = {}
                 
-                cameras.append(Camera(**camera_data))
+                cameras.append(database_models.Camera(**camera_data))
             
             return cameras
     
-    def update_camera_status(self, camera_id: int, status: StatusEnum):
+    def update_camera_status(self, camera_id: int, status: database_models.StatusEnum):
         """Atualiza status de uma câmera"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -357,11 +343,43 @@ class DatabaseManager:
             
             conn.commit()
     
+    def get_all_cameras(self, ativo_only: bool = True) -> List[database_models.Camera]:
+        """Lista todas as câmeras cadastradas no banco.
+
+        Args:
+            ativo_only (bool): Se True, retorna apenas câmeras ativas.
+
+        Returns:
+            List[Camera]: Lista de câmeras.
+        """
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM cameras"
+            if ativo_only:
+                query += " WHERE ativo = TRUE"
+
+            cursor.execute(query)
+
+            rows = cursor.fetchall()
+            cameras = []
+            for row in rows:
+                camera_data = dict(row)
+                # Parse JSON config
+                try:
+                    camera_data['config_json'] = json.loads(camera_data['config_json'])
+                except:
+                    camera_data['config_json'] = {}
+                
+                cameras.append(database_models.Camera(**camera_data))
+            
+            return cameras
+
     # =====================================================
     # PRODUCAO DADOS CRUD
     # =====================================================
     
-    def create_producao_dados(self, dados: ProducaoDadosCreate) -> ProducaoDados:
+    def create_producao_dados(self, dados: database_models.ProducaoDadosCreate) -> database_models.ProducaoDados:
         """Cria registro de dados de produção"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -385,7 +403,7 @@ class DatabaseManager:
             
             return self.get_producao_dados(dados_id)
     
-    def get_producao_dados(self, dados_id: int) -> Optional[ProducaoDados]:
+    def get_producao_dados(self, dados_id: int) -> Optional[database_models.ProducaoDados]:
         """Busca dados de produção por ID"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -398,17 +416,16 @@ class DatabaseManager:
             if row:
                 dados_data = dict(row)
                 # Parse JSON fields
-                import json
                 for field in ['alertas_json', 'eventos_json', 'dados_json']:
                     try:
                         dados_data[field] = json.loads(dados_data[field])
                     except:
                         dados_data[field] = [] if field.endswith('_json') else {}
                 
-                return ProducaoDados(**dados_data)
+                return database_models.ProducaoDados(**dados_data)
             return None
     
-    def get_latest_producao_by_camera(self, camera_id: int) -> Optional[ProducaoDados]:
+    def get_latest_producao_by_camera(self, camera_id: int) -> Optional[database_models.ProducaoDados]:
         """Busca dados mais recentes de uma câmera"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -424,21 +441,20 @@ class DatabaseManager:
             if row:
                 dados_data = dict(row)
                 # Parse JSON fields
-                import json
                 for field in ['alertas_json', 'eventos_json', 'dados_json']:
                     try:
                         dados_data[field] = json.loads(dados_data[field])
                     except:
                         dados_data[field] = [] if field.endswith('_json') else {}
                 
-                return ProducaoDados(**dados_data)
+                return database_models.ProducaoDados(**dados_data)
             return None
     
     # =====================================================
     # ALERTAS CRUD
     # =====================================================
     
-    def create_alerta(self, alerta: AlertaHistoricoCreate) -> AlertaHistorico:
+    def create_alerta(self, alerta: database_models.AlertaHistoricoCreate) -> database_models.AlertaHistorico:
         """Cria um novo alerta"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -461,7 +477,7 @@ class DatabaseManager:
             
             return self.get_alerta(alerta_id)
     
-    def get_alerta(self, alerta_id: int) -> Optional[AlertaHistorico]:
+    def get_alerta(self, alerta_id: int) -> Optional[database_models.AlertaHistorico]:
         """Busca alerta por ID"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -474,16 +490,15 @@ class DatabaseManager:
             if row:
                 alerta_data = dict(row)
                 # Parse JSON
-                import json
                 try:
                     alerta_data['dados_json'] = json.loads(alerta_data['dados_json'])
                 except:
                     alerta_data['dados_json'] = {}
                 
-                return AlertaHistorico(**alerta_data)
+                return database_models.AlertaHistorico(**alerta_data)
             return None
     
-    def get_alertas_recentes(self, limit: int = 50) -> List[AlertaHistorico]:
+    def get_alertas_recentes(self, limit: int = 50) -> List[database_models.AlertaHistorico]:
         """Lista alertas mais recentes"""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -500,12 +515,11 @@ class DatabaseManager:
             for row in rows:
                 alerta_data = dict(row)
                 # Parse JSON
-                import json
                 try:
                     alerta_data['dados_json'] = json.loads(alerta_data['dados_json'])
                 except:
                     alerta_data['dados_json'] = {}
                 
-                alertas.append(AlertaHistorico(**alerta_data))
+                alertas.append(database_models.AlertaHistorico(**alerta_data))
             
             return alertas
