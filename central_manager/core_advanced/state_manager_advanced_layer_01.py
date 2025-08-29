@@ -13,20 +13,14 @@ from .alert_manager import AlertManager
 class SimpleStateManager:
     """StateManager com lógica avançada do legacy (memória espacial + detecção de saltos)"""
     
-    def __init__(self):
+    def __init__(self, alert_manager=None, camera_id=None):
         self.logger = SimpleLogger("STATE_MANAGER")
         self.config = STATE_CONFIG # Usa a configuração do próprio módulo
 
-        try:
-            self.alert_manager = AlertManager(
-            broker_ip=MQTT_CONFIG['broker_ip'],
-            broker_port=MQTT_CONFIG['broker_port'],
-            client_id=MQTT_CONFIG['client_id']
-        )
-            self.logger.info("AlertManager inicializado e tentando conectar ao MQTT.")
-        except Exception as e:
-            self.logger.error(f"Falha ao inicializar AlertManager: {e}")
-            self.alert_manager = None
+        self.alert_manager = alert_manager
+        if not self.alert_manager:
+            self.logger.warning("AlertManager não foi fornecido. Alertas estarão desativados.")
+        self.camera_id = camera_id
 
         # Estados
         self.ESTADOS = self.config['estados']
@@ -61,6 +55,9 @@ class SimpleStateManager:
         self.primeira_deteccao = True
         self.ultima_contagem_valida = 0 # Guarda a última contagem antes de perder a ROI
         
+        # Controle do LED ESP32
+        self.led_ativo = False  # Estado atual do LED
+        
         # Lógica de camada estabelecida
         self.camada_2_estabelecida = False
         self.tempo_ultimo_divisor_ausente = None
@@ -72,7 +69,34 @@ class SimpleStateManager:
         self.divisor_estava_presente_frame_anterior = False  # Estado anterior do divisor
         
         self.logger.info("StateManager AVANÇADO inicializado com memória espacial, detecção de saltos e validação por divisor")
-    
+
+    def _enviar_comando_led(self, comando):
+        """Envia comando para o LED via MQTT (on/off)."""
+        if not self.alert_manager:
+            self.logger.warning("AlertManager não inicializado. Comando LED não pode ser enviado.")
+            return
+
+        try:
+            topics_cfg = MQTT_CONFIG.get('topics', {})
+            default_topic = topics_cfg.get('led_command_default', 'guizo/00')
+            led_map = topics_cfg.get('led_topic_map', {})
+            cam_key = str(self.camera_id) if self.camera_id is not None else None
+            topic = led_map.get(cam_key, default_topic)
+            self.alert_manager.send_alert(topic, comando)
+            self.logger.info(f"Comando LED enviado (topic='{topic}'): {comando}")
+            
+            # Atualizar estado interno do LED
+            if comando == "on":
+                self.led_ativo = True
+            elif comando == "off":
+                self.led_ativo = False
+                # Publicar ROI OFF + evento de restauração quando LED é desligado
+                self._publish_roi_state("OFF", reason="led_off")
+                self._publish_roi_event("roi_restored", {"reason": "led_off"})
+                
+        except Exception as e:
+            self.logger.error(f"Falha ao enviar comando LED: {e}")
+
     def _enviar_alerta_caixa_incompleta(self, contagem_no_momento_da_perda):
         """Envia um alerta para uma caixa removida com contagem de itens incompleta."""
         itens_faltantes = self.PERFIL_CAIXA['itens_por_camada'] - contagem_no_momento_da_perda
@@ -83,19 +107,26 @@ class SimpleStateManager:
         )
         self.logger.error(f"🚨 ALERTA: {mensagem}")
         
-        # Preparar payload JSON para MQTT
-        import json
-        payload = {
-            "tipo_alerta": "caixa_incompleta",
-            "camada_atual": self.camada_atual,
-            "contagem_atual": contagem_no_momento_da_perda,
-            "total_esperado": self.PERFIL_CAIXA['itens_por_camada'],
-            "mensagem": mensagem
-        }
+        # Acender LED no ESP32
+        self._enviar_comando_led("on")
         
-        # Enviar via MQTT usando o método correto
-        topic = "siac/alertas/caixa_incompleta"
-        self.alert_manager.send_alert(topic, json.dumps(payload))
+        # Publicar ROI ON + evento de remoção incorreta
+        self._publish_roi_state("ON", reason="roi_lost_incomplete", extra={
+            "missing": itens_faltantes,
+            "expected": self.PERFIL_CAIXA['itens_por_camada'],
+            "count_at_loss": contagem_no_momento_da_perda,
+        })
+        self._publish_roi_event("roi_incorrect_removal", {
+            "missing": itens_faltantes,
+            "expected": self.PERFIL_CAIXA['itens_por_camada'],
+            "count_at_loss": contagem_no_momento_da_perda,
+        })
+
+    def _desligar_led_se_ativo(self):
+        """Desliga o LED se estiver ativo."""
+        if self.led_ativo:
+            self._enviar_comando_led("off")
+            self.logger.info("LED desligado - ROI retornou ou caixa completa")
 
     def _enviar_alerta_caixa_incompleta_original(self):
         """Envia um alerta de caixa removida incompleta via MQTT."""
@@ -488,6 +519,57 @@ class SimpleStateManager:
         self.tempo_inicio_salto_suspeito = None
         self.itens_salto_suspeito = []
     
+    def _mqtt_topics(self):
+        """Resolve tópicos por câmera para ROI state/event."""
+        base_state = MQTT_CONFIG.get('topics', {}).get('roi_state_base')
+        base_event = MQTT_CONFIG.get('topics', {}).get('roi_event_base')
+        cam = self.camera_id if self.camera_id is not None else "unknown"
+        state_topic = base_state.format(camera_id=cam) if base_state else None
+        event_topic = base_event.format(camera_id=cam) if base_event else None
+        return state_topic, event_topic
+
+    def _publish_roi_state(self, state, reason="", extra=None):
+        if not self.alert_manager:
+            return
+        state_topic, _ = self._mqtt_topics()
+        if not state_topic:
+            return
+        payload = {
+            "camera_id": self.camera_id,
+            "state": state,
+            "ts": int(time.time()),
+            "reason": reason,
+            "layer": self.camada_atual,
+            "count": self.ultima_contagem_valida if state == "ON" else self.contagem_estabilizada,
+        }
+        if extra:
+            payload.update(extra)
+        try:
+            # Retida para refletir o último estado conhecido
+            self.alert_manager.publish_json(state_topic, payload, qos=1, retain=True)
+        except Exception as e:
+            self.logger.error(f"Falha ao publicar ROI state: {e}")
+
+    def _publish_roi_event(self, event, details=None):
+        if not self.alert_manager:
+            return
+        _, event_topic = self._mqtt_topics()
+        if not event_topic:
+            return
+        payload = {
+            "camera_id": self.camera_id,
+            "event": event,
+            "ts": int(time.time()),
+            "layer": self.camada_atual,
+            "count": self.contagem_estabilizada,
+        }
+        if details:
+            payload.update(details)
+        try:
+            self.alert_manager.publish_json(event_topic, payload, qos=1, retain=False)
+        except Exception as e:
+            self.logger.error(f"Falha ao publicar ROI event: {e}")
+    
     def atualizar_estado(self, roi_presente, itens_detectados, divisores_detectados):
         """Atualiza estado com lógica avançada (memória espacial + detecção de saltos)"""
         tempo_atual = time.time()
@@ -604,6 +686,7 @@ class SimpleStateManager:
                     # Caixa completa
                     total_itens = sum(self.contagens_por_camada.values())
                     self.logger.info(f"🎯 CAIXA COMPLETA! Total: {total_itens} itens")
+                    self._desligar_led_se_ativo()  # Desligar LED se ativo
                     self._transitar_para(self.ESTADOS['CAIXA_COMPLETA'], "Todas as camadas completas")
                 else:
                     # Aguardar divisor para próxima camada
@@ -636,6 +719,7 @@ class SimpleStateManager:
         elif estado_atual == self.ESTADOS['CAIXA_AUSENTE']:
             if roi_estavel:
                 self.logger.info("✅ Caixa reapareceu")
+                self._desligar_led_se_ativo()  # Desligar LED quando ROI retorna
                 self._transitar_para(self.ESTADOS['CONTANDO_ITENS'], "ROI reapareceu")
                 self.caixa_ausente_desde = None
     
@@ -646,12 +730,14 @@ class SimpleStateManager:
 
     def _resetar_sistema(self):
         """Reset completo do sistema"""
+        self._desligar_led_se_ativo()  # Garante desligamento do LED no reset
         self.logger.info("🔄 Sistema resetado")
         self._transitar_para(self.ESTADOS['AGUARDANDO_CAIXA'], "Reset do sistema")
         self.camada_atual = 1
         self.contagens_por_camada = {1: 0, 2: 0}
         self.contagem_estabilizada = 0
         self.ultima_contagem_valida = 0 # Resetar também no reset geral
+        self.led_ativo = False  # Reset do estado do LED
         self.buffer_roi.clear()
         self.buffer_contagem_itens.clear()
         self.buffer_divisor_presente.clear()
