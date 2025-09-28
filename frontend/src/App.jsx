@@ -9,21 +9,21 @@ import {
   IconButton,
   HStack,
   Spinner,
-  Circle,
-  Card,
-  Stat,
   Badge,
   VStack,
   SimpleGrid,
 } from '@chakra-ui/react'
+import { Link as RouterLink, Routes, Route } from 'react-router-dom'
 import MenuIcon from '@mui/icons-material/Menu'
 import CloseIcon from '@mui/icons-material/Close'
+import SetorPage from './pages/SetorPage.jsx'
+import LiquidosPage from './pages/LiquidosPage.jsx'
 
 // Removed Vite template CSS; Chakra handles styles
 
 function StatusDot({ status }) {
   const color = status === 'ok' ? 'green.400' : 'red.400'
-  return <Circle size="10px" bg={color} />
+  return <Box borderRadius="full" boxSize="10px" bg={color} />
 }
 
 function setorStatus(active, total) {
@@ -33,7 +33,7 @@ function setorStatus(active, total) {
   return { color: 'yellow', label: 'Parcial' }
 }
 
-const API_URL = 'http://localhost:8000/api'
+const API_URL = 'http://localhost:8000/api/v1'
 
 function useFetch(url, setter) {
   const [loading, setLoading] = useState(false)
@@ -62,6 +62,92 @@ function useFetch(url, setter) {
   return { loading, error }
 }
 
+// Tela inicial (overview + setores)
+function DashboardOverview({ overview, setores, globalLoading }) {
+  return (
+    <Box flex="1" overflowY="auto">
+      {/* Loading overlay */}
+      {globalLoading && (
+        <Flex position="fixed" inset={0} bg="blackAlpha.400" align="center" justify="center" zIndex={10}>
+          <Spinner size="xl" color="blue.500" />
+        </Flex>
+      )}
+
+      <Container maxW="container.xl" py={6}>
+        {/* Overview Cards */}
+        {overview && (
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+            <Box borderWidth="1px" borderRadius="md" bg="bg.surface" boxShadow="sm">
+              <Box p={6}>
+                <VStack align="flex-start" spacing={1}>
+                  <Text fontSize="sm" color="fg.muted">Total de Setores</Text>
+                  <Text fontSize="2xl" fontWeight="bold">{overview.total_setores}</Text>
+                </VStack>
+              </Box>
+            </Box>
+            <Box borderWidth="1px" borderRadius="md" bg="bg.surface" boxShadow="sm">
+              <Box p={6}>
+                <VStack align="flex-start" spacing={1}>
+                  <Text fontSize="sm" color="fg.muted">Setores Ativos</Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="bold"
+                    color={overview.setores_ativos > 0 ? 'green.500' : 'green.700'}
+                  >
+                    {overview.setores_ativos}
+                  </Text>
+                </VStack>
+              </Box>
+            </Box>
+            <Box borderWidth="1px" borderRadius="md" bg="bg.surface" boxShadow="sm">
+              <Box p={6}>
+                <VStack align="flex-start" spacing={1}>
+                  <Text fontSize="sm" color="fg.muted">Total de Câmeras</Text>
+                  <Text fontSize="2xl" fontWeight="bold">{overview.total_cameras}</Text>
+                </VStack>
+              </Box>
+            </Box>
+            <Box borderWidth="1px" borderRadius="md" bg="bg.surface" boxShadow="sm">
+              <Box p={6}>
+                <VStack align="flex-start" spacing={1}>
+                  <Text fontSize="sm" color="fg.muted">Câmeras Ativas</Text>
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="bold"
+                    color={overview.cameras_ativas > 0 ? 'green.500' : 'green.700'}
+                  >
+                    {overview.cameras_ativas}
+                  </Text>
+                </VStack>
+              </Box>
+            </Box>
+          </SimpleGrid>
+        )}
+
+        {/* Setores Grid */}
+        <Heading size="lg" mb={4}>Setores</Heading>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+          {setores.map((setor) => (
+            <Box key={setor.id} borderWidth="1px" borderRadius="md" bg="bg.surface" boxShadow="sm">
+              <Box p={6}>
+                <Flex justify="space-between" align="center" mb={4}>
+                  <Heading size="md">{setor.name}</Heading>
+                  <Badge colorScheme={setorStatus(setor.active_cameras, setor.total_cameras).color}>
+                    {setorStatus(setor.active_cameras, setor.total_cameras).label}
+                  </Badge>
+                </Flex>
+                <Text fontSize="sm" color="fg.muted">
+                  {setor.active_cameras} de {setor.total_cameras} câmeras ativas
+                </Text>
+              </Box>
+            </Box>
+          ))}
+        </SimpleGrid>
+      </Container>
+    </Box>
+  )
+}
+
 function App() {
   const [status, setStatus] = useState(null)
   const [overview, setOverview] = useState(null)
@@ -70,12 +156,11 @@ function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true)
   const [isSetoresOpen, setIsSetoresOpen] = useState(false)
 
-  const { loading: statusLoading, error: statusError } = useFetch(API_URL, setStatus)
-  const { loading: overviewLoading, error: overviewError } = useFetch(`${API_URL}/overview`, setOverview)
-  const { loading: setoresLoading, error: setoresError } = useFetch(`${API_URL}/setores`, setSetores)
+  const { loading: statusLoading } = useFetch(`${API_URL}/status`, setStatus)
+  const { loading: overviewLoading } = useFetch(`${API_URL}/dashboard`, setOverview)
+  const { loading: setoresLoading } = useFetch(`${API_URL}/setores`, setSetores)
 
   const reloadAll = () => {
-    // Trigger re-fetch by updating the URLs or calling fetch functions directly
     window.location.reload()
   }
 
@@ -118,6 +203,8 @@ function App() {
                 variant="ghost"
                 justifyContent="flex-start"
                 leftIcon={<Box as="span" className="material-symbols-outlined">home</Box>}
+                as={RouterLink}
+                to="/"
               >
                 Página Inicial
               </Button>
@@ -137,7 +224,17 @@ function App() {
                 transition="max-height 0.3s ease"
               >
                 <VStack align="stretch" spacing={1} pl={6} mt={1}>
-                  <Button variant="ghost" justifyContent="flex-start" size="sm">Líquidos</Button>
+                  {/* Novo link para a página de Líquidos */}
+                  <Button
+                    as={RouterLink}
+                    to="/setores/liquidos"
+                    variant="ghost"
+                    justifyContent="flex-start"
+                    size="sm"
+                  >
+                    Líquidos
+                  </Button>
+                  {/* Os demais podem virar links depois */}
                   <Button variant="ghost" justifyContent="flex-start" size="sm">Sólidos</Button>
                   <Button variant="ghost" justifyContent="flex-start" size="sm">Semi-sólidos</Button>
                 </VStack>
@@ -156,7 +253,7 @@ function App() {
 
       {/* Main Content Area */}
       <Flex flex="1" direction="column">
-        {/* Header (movido para cá) */}
+        {/* Header */}
         <Flex as="header" bg="bg.surface" borderBottom="1px" borderColor="border.default" px={{ base: 3, md: 6 }} py={{ base: 2, md: 3 }} align="center" wrap="wrap" gap={2} position="relative">
           <HStack spacing={3}>
             {!isSidebarOpen && (
@@ -197,75 +294,20 @@ function App() {
           </HStack>
         </Flex>
 
-        {/* Content */}
-        <Box flex="1" overflowY="auto">
-          {/* Loading overlay */}
-          {globalLoading && (
-            <Flex position="fixed" inset={0} bg="blackAlpha.400" align="center" justify="center" zIndex={10}>
-              <Spinner size="xl" color="blue.500" />
-            </Flex>
-          )}
-
-          <Container maxW="container.xl" py={6}>
-            {/* Overview Cards */}
-            {overview && (
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
-                <Card>
-                  <Box p={6}>
-                    <Stat>
-                      <Text fontSize="sm" color="fg.muted">Total de Setores</Text>
-                      <Text fontSize="2xl" fontWeight="bold">{overview.total_setores}</Text>
-                    </Stat>
-                  </Box>
-                </Card>
-                <Card>
-                  <Box p={6}>
-                    <Stat>
-                      <Text fontSize="sm" color="fg.muted">Setores Ativos</Text>
-                      <Text fontSize="2xl" fontWeight="bold" color="green.500">{overview.setores_ativos}</Text>
-                    </Stat>
-                  </Box>
-                </Card>
-                <Card>
-                  <Box p={6}>
-                    <Stat>
-                      <Text fontSize="sm" color="fg.muted">Total de Câmeras</Text>
-                      <Text fontSize="2xl" fontWeight="bold">{overview.total_cameras}</Text>
-                    </Stat>
-                  </Box>
-                </Card>
-                <Card>
-                  <Box p={6}>
-                    <Stat>
-                      <Text fontSize="sm" color="fg.muted">Câmeras Ativas</Text>
-                      <Text fontSize="2xl" fontWeight="bold" color="green.500">{overview.cameras_ativas}</Text>
-                    </Stat>
-                  </Box>
-                </Card>
-              </SimpleGrid>
-            )}
-
-            {/* Setores Grid */}
-            <Heading size="lg" mb={4}>Setores</Heading>
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-              {setores.map((setor) => (
-                <Card key={setor.id}>
-                  <Box p={6}>
-                    <Flex justify="space-between" align="center" mb={4}>
-                      <Heading size="md">{setor.name}</Heading>
-                      <Badge colorScheme={setorStatus(setor.active_cameras, setor.total_cameras).color}>
-                        {setorStatus(setor.active_cameras, setor.total_cameras).label}
-                      </Badge>
-                    </Flex>
-                    <Text fontSize="sm" color="fg.muted">
-                      {setor.active_cameras} de {setor.total_cameras} câmeras ativas
-                    </Text>
-                  </Box>
-                </Card>
-              ))}
-            </SimpleGrid>
-          </Container>
-        </Box>
+        {/* Rotas da área de conteúdo */}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <DashboardOverview
+                overview={overview}
+                setores={setores}
+                globalLoading={globalLoading}
+              />
+            }
+          />
+          <Route path="/setores/:setorNome" element={<SetorPage />} />
+        </Routes>
       </Flex>
     </Flex>
   )

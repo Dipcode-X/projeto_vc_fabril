@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import logging
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from central_manager.core_advanced.orchestrator import Orchestrator
 from central_manager.core_advanced.alert_manager import AlertManager
@@ -87,6 +88,15 @@ def create_app():
         title="SIAC Industrial - API",
         description="API para gerenciar o sistema SIAC.",
         lifespan=lifespan
+    )
+
+    # Enable CORS for Vite dev server (localhost:5173)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # Ensure default registered cameras list exists
