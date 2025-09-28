@@ -66,7 +66,6 @@ function useFetch(url, setter) {
 function DashboardOverview({ overview, setores, globalLoading }) {
   return (
     <Box flex="1" overflowY="auto">
-      {/* Loading overlay */}
       {globalLoading && (
         <Flex position="fixed" inset={0} bg="blackAlpha.400" align="center" justify="center" zIndex={10}>
           <Spinner size="xl" color="blue.500" />
@@ -74,7 +73,6 @@ function DashboardOverview({ overview, setores, globalLoading }) {
       )}
 
       <Container maxW="container.xl" py={6}>
-        {/* Overview Cards */}
         {overview && (
           <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
             <Box borderWidth="1px" borderRadius="md" bg="bg.surface" boxShadow="sm">
@@ -124,7 +122,6 @@ function DashboardOverview({ overview, setores, globalLoading }) {
           </SimpleGrid>
         )}
 
-        {/* Setores Grid */}
         <Heading size="lg" mb={4}>Setores</Heading>
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
           {setores.map((setor) => (
@@ -173,7 +170,6 @@ function App() {
 
   return (
     <Flex h="100vh" bg="bg.canvas">
-      {/* Sidebar (agora com animação) */}
       <Box
         as="aside"
         w={isSidebarOpen ? { base: '100vw', sm: '85vw', md: '70vw', lg: '20vw', xl: '20vw' } : 0}
@@ -224,7 +220,6 @@ function App() {
                 transition="max-height 0.3s ease"
               >
                 <VStack align="stretch" spacing={1} pl={6} mt={1}>
-                  {/* Novo link para a página de Líquidos */}
                   <Button
                     as={RouterLink}
                     to="/setores/liquidos"
@@ -234,7 +229,6 @@ function App() {
                   >
                     Líquidos
                   </Button>
-                  {/* Os demais podem virar links depois */}
                   <Button variant="ghost" justifyContent="flex-start" size="sm">Sólidos</Button>
                   <Button variant="ghost" justifyContent="flex-start" size="sm">Semi-sólidos</Button>
                 </VStack>
@@ -251,9 +245,7 @@ function App() {
         </Box>
       </Box>
 
-      {/* Main Content Area */}
       <Flex flex="1" direction="column">
-        {/* Header */}
         <Flex as="header" bg="bg.surface" borderBottom="1px" borderColor="border.default" px={{ base: 3, md: 6 }} py={{ base: 2, md: 3 }} align="center" wrap="wrap" gap={2} position="relative">
           <HStack spacing={3}>
             {!isSidebarOpen && (
@@ -269,7 +261,6 @@ function App() {
             )}
           </HStack>
 
-          {/* Título centralizado */}
           <Box position="absolute" left="50%" transform="translateX(-50%)" pointerEvents="none">
             <Heading size="md" textAlign="center">SIAC Industrial</Heading>
           </Box>
@@ -294,7 +285,6 @@ function App() {
           </HStack>
         </Flex>
 
-        {/* Rotas da área de conteúdo */}
         <Routes>
           <Route
             path="/"
@@ -306,6 +296,7 @@ function App() {
               />
             }
           />
+          <Route path="/setores/liquidos" element={<LiquidosPage />} />
           <Route path="/setores/:setorNome" element={<SetorPage />} />
         </Routes>
       </Flex>

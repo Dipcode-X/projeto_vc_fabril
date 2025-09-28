@@ -1,305 +1,318 @@
-// frontend/src/pages/LiquidosPage.jsx
+import { useEffect, useState } from 'react'
 import {
-    Box,
-    Flex,
-    Grid,
-    GridItem,
-    Stack,
-    HStack,
-    VStack,
-    SimpleGrid,
-    Heading,
-    Text,
-    Badge,
-    Tag,
-    Divider,
-    Spacer,
-    Button,
-    IconButton,
-    Select,
-    NumberInput,
-    NumberInputField,
-    Switch,
-    Input,
-    Tabs,
-    TabList,
-    TabPanels,
-    Tab,
-    TabPanel,
-    Tooltip,
-    Progress,
-    CircularProgress,
-    AspectRatio,
-    Image,
-    Skeleton,
-  } from '@chakra-ui/react'
-  import { InfoOutlineIcon, RepeatIcon } from '@chakra-ui/icons'
-  import { useMemo } from 'react'
-  
-  export default function LiquidosPage() {
-    // Mock de dados para layout estático
-    const kpis = useMemo(
-      () => ([
-        { label: 'Câmeras ativas', value: 1, color: (v) => (v > 0 ? 'green.500' : 'green.700') },
-        { label: 'Total de câmeras', value: 2 },
-        { label: 'Itens por camada', value: '6 × 1' },
-        { label: 'Contagem atual', value: '1 / 6' },
-      ]),
-      []
-    )
-  
-    const linhaA = {
-      nome: 'Linha A',
-      online: true,
-      item: 'ac_madepil',
-      caixa: 'roi: 19×28',
-      perfil: '6 × 1',
-      divisor: 'Não',
-      cameras: '1/1',
-      contagem: '1/6',
+  Box,
+  Container,
+  Heading,
+  Text,
+  SimpleGrid,
+  Grid,
+  GridItem,
+  Flex,
+  Badge,
+  DataList,
+  Select,
+  Button,
+  HStack,
+  Portal,
+  Center,
+  Spinner,
+  createListCollection,
+} from '@chakra-ui/react'
+import CameraStream from '../components/CameraStream.jsx'
+import { startCamera, stopCamera, getCameraStatus } from '../Lib/api.js'
+
+const produtosCollection = createListCollection({
+  items: [
+    { label: 'ac_madepil', value: 'ac_madepil', categoria: 'Líquidos' },
+    { label: 'glifosato_dipil_480', value: 'glifosato_dipil_480', categoria: 'Líquidos' },
+  ],
+})
+
+// Agrupamento sem dependências externas
+const categorias = Object.entries(
+  produtosCollection.items.reduce((acc, item) => {
+    const key = item.categoria || 'Produtos'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(item)
+    return acc
+  }, {}),
+)
+
+export default function LiquidosPage() {
+  // Usaremos a webcam do Mac como id 0
+  const CAMERA_ID_A = 0
+
+  // Estado Linha A
+  const [runningA, setRunningA] = useState(false)
+  const [statusA, setStatusA] = useState(null)
+  const [loadingStartA, setLoadingStartA] = useState(false)
+  const [loadingStopA, setLoadingStopA] = useState(false)
+  const [bootingA, setBootingA] = useState(false) // spinner enquanto aguardamos running=true
+
+  async function fetchStatusA() {
+    try {
+      const s = await getCameraStatus(CAMERA_ID_A)
+      setStatusA(s)
+      setRunningA(Boolean(s?.running))
+      return s
+    } catch (err) {
+      console.error('Erro ao obter status da câmera A:', err)
+      setRunningA(false)
+      return null
     }
-  
-    const linhaB = {
-      nome: 'Linha B',
-      online: false,
-      item: 'item_detector',
-      caixa: 'roi: —',
-      perfil: '— × —',
-      divisor: 'Sim',
-      cameras: '—/—',
-      contagem: '—/—',
+  }
+
+  // util: espera até running=true com timeout curto
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+  async function waitForRunningA({ tries = 15, interval = 200 } = {}) {
+    for (let i = 0; i < tries; i++) {
+      const s = await fetchStatusA()
+      if (s?.running) return s
+      await sleep(interval)
     }
-  
-    const subtle = 'fg.muted'
-    const cardProps = {
-      borderWidth: '1px',
-      borderRadius: 'md',
-      bg: 'bg.surface',
-      boxShadow: 'sm',
+    return null
+  }
+
+  useEffect(() => {
+    fetchStatusA()
+  }, [])
+
+  async function handleStartA() {
+    try {
+      setLoadingStartA(true)
+      setBootingA(true)
+      await startCamera(CAMERA_ID_A)
+      // Aguarda running=true para evitar necessidade de 2 cliques
+      await waitForRunningA()
+    } catch (err) {
+      console.error('Falha ao iniciar câmera A:', err)
+    } finally {
+      setLoadingStartA(false)
+      setBootingA(false)
     }
-  
-    return (
-      <Box bg="bg.canvas" minH="100vh" p={{ base: 4, md: 6 }}>
-        {/* Topbar */}
-        <Flex align="center" gap={4} mb={6}>
-          <Heading size="lg">SIAC Industrial • Líquidos</Heading>
-          <Tag colorScheme="green">Online</Tag>
-          <Spacer />
-          <Tooltip label="Atualizar">
-            <IconButton aria-label="Atualizar" icon={<RepeatIcon />} variant="ghost" />
-          </Tooltip>
-        </Flex>
-  
-        {/* KPIs */}
-        <SimpleGrid columns={{ base: 1, md: 4 }} gap={4} mb={6}>
-          {kpis.map((kpi, i) => (
-            <Box key={i} {...cardProps}>
-              <Box p={5}>
-                <VStack align="flex-start" spacing={1}>
-                  <Text fontSize="sm" color={subtle}>{kpi.label}</Text>
-                  <Text
-                    fontSize="2xl"
-                    fontWeight="bold"
-                    color={typeof kpi.value === 'number' && kpi.color ? kpi.color(kpi.value) : undefined}
-                  >
-                    {kpi.value}
-                  </Text>
-                  <Text fontSize="xs" color={subtle}>atualizado agora</Text>
-                </VStack>
-              </Box>
+  }
+
+  async function handleStopA() {
+    try {
+      setLoadingStopA(true)
+      await stopCamera(CAMERA_ID_A)
+      await fetchStatusA()
+    } catch (err) {
+      console.error('Falha ao parar câmera A:', err)
+    } finally {
+      setLoadingStopA(false)
+      setBootingA(false)
+    }
+  }
+
+  return (
+    <Box flex="1" overflowY="auto">
+      <Container maxW="container.xl" py={6}>
+        {/* Topbar simples (placeholder) */}
+        <Heading size="lg" mb={4}>SIAC Industrial • Líquidos</Heading>
+
+        {/* KPIs (placeholder) */}
+        <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4} mb={6}>
+          {['KPI 1', 'KPI 2', 'KPI 3', 'KPI 4'].map((label) => (
+            <Box key={label} borderWidth="1px" borderRadius="md" bg="bg.surface" p={4}>
+              <Text fontSize="sm" color="fg.muted">{label}</Text>
+              <Box h="28px" />
             </Box>
           ))}
         </SimpleGrid>
-  
-        {/* 2 colunas principais */}
+
+        {/* 2 colunas principais: Linha A / Linha B */}
         <Grid templateColumns={{ base: '1fr', xl: '1fr 1fr' }} gap={6}>
           {/* Linha A */}
           <GridItem>
-            <Box {...cardProps}>
-              <Box p={5} borderBottom="1px" borderColor="border.default">
-                <HStack align="start" w="full">
-                  <Box>
-                    <Heading size="md">{linhaA.nome}</Heading>
-                    <HStack mt={2} gap={2} wrap="wrap">
-                      <Badge colorScheme={linhaA.online ? 'green' : 'gray'}>
-                        {linhaA.online ? 'Online' : 'Offline'}
-                      </Badge>
-                      <Tag size="sm">item: {linhaA.item}</Tag>
-                      <Tag size="sm">caixa: {linhaA.caixa}</Tag>
-                      <Tag size="sm" variant="subtle">perfil: {linhaA.perfil}</Tag>
-                      <Tag size="sm">divisor: {linhaA.divisor}</Tag>
-                      <Tag size="sm">câmeras: {linhaA.cameras}</Tag>
-                      <Tag size="sm">contagem: {linhaA.contagem}</Tag>
-                    </HStack>
-                  </Box>
-                  <Spacer />
-                  <Tooltip label="Informações da linha">
-                    <Box as={InfoOutlineIcon} color={subtle} />
-                  </Tooltip>
-                </HStack>
-              </Box>
-  
-              <Box p={5}>
-                {/* Controles */}
-                <Stack
-                  direction={{ base: 'column', md: 'row' }}
-                  gap={4}
-                  align="start"
-                  mb={4}
-                  flexWrap="wrap"
-                >
-                  <Box minW="230px">
-                    <Text fontSize="sm" mb={1}>Trocar produto</Text>
-                    <HStack gap={2}>
-                      <Select placeholder="selecione…">
-                        <option>ac_madepil</option>
-                        <option>glifosato_dipil_480</option>
-                      </Select>
-                      <Button>Aplicar</Button>
-                    </HStack>
-                  </Box>
-  
-                  <Box>
-                    <Text fontSize="sm" mb={1}>Camada</Text>
-                    <NumberInput w="120px" min={1} defaultValue={1}>
-                      <NumberInputField />
-                    </NumberInput>
-                  </Box>
-  
-                  <Box>
-                    <Text fontSize="sm" mb={1}>Contagem</Text>
-                    <NumberInput w="140px" min={0} defaultValue={6}>
-                      <NumberInputField />
-                    </NumberInput>
-                  </Box>
-  
-                  <Box>
-                    <Text fontSize="sm" mb={1}>Divisor</Text>
-                    <HStack gap={2}>
-                      <Switch />
-                      <Text fontSize="sm" color={subtle}>desligado</Text>
-                    </HStack>
-                  </Box>
-  
-                  <Spacer />
-                  <HStack gap={2}>
-                    <Button colorScheme="green">Iniciar</Button>
-                    <Button colorScheme="red" variant="outline">Parar</Button>
+            <Box borderWidth="1px" borderRadius="md" bg="bg.surface" p={4}>
+              <Heading size="md" mb={4}>Linha A</Heading>
+
+              {/* Esquerda: DataList | Direita: Select (v3) + botões */}
+              <Flex direction={{ base: 'column', md: 'row' }} gap={6} mb={4}>
+                {/* DataList */}
+                <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" p={3} flex="1">
+                  <DataList.Root orientation="horizontal" divideY="1px">
+                    <DataList.Item>
+                      <DataList.ItemLabel>Status</DataList.ItemLabel>
+                      <DataList.ItemValue>
+                        <Badge colorScheme={runningA ? 'green' : 'gray'}>
+                          {runningA ? 'Online' : 'Offline'}
+                        </Badge>
+                      </DataList.ItemValue>
+                    </DataList.Item>
+                    <DataList.Item>
+                      <DataList.ItemLabel>Item</DataList.ItemLabel>
+                      <DataList.ItemValue>{statusA?.product_name ?? '—'}</DataList.ItemValue>
+                    </DataList.Item>
+                    <DataList.Item>
+                      <DataList.ItemLabel>Perfil</DataList.ItemLabel>
+                      <DataList.ItemValue>6 × 1</DataList.ItemValue>
+                    </DataList.Item>
+                  </DataList.Root>
+                </Box>
+
+                {/* Select v3 + botões */}
+                <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" p={3} flex="1">
+                  <Select.Root collection={produtosCollection} size="sm" width="100%">
+                    <Select.HiddenSelect />
+                    <Select.Label>Trocar produto</Select.Label>
+                    <Select.Control>
+                      <Select.Trigger>
+                        <Select.ValueText placeholder="Selecione um produto" />
+                      </Select.Trigger>
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {categorias.map(([categoria, items]) => (
+                            <Select.ItemGroup key={categoria}>
+                              <Select.ItemGroupLabel>{categoria}</Select.ItemGroupLabel>
+                              {items.map((item) => (
+                                <Select.Item item={item} key={item.value}>
+                                  {item.label}
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.ItemGroup>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Portal>
+                  </Select.Root>
+
+                  <HStack spacing={2} mt={3}>
+                    <Button
+                      size="sm"
+                      colorScheme="green"
+                      onClick={handleStartA}
+                      isDisabled={runningA || bootingA}
+                      isLoading={loadingStartA || bootingA}
+                    >
+                      Iniciar
+                    </Button>
+                    <Button
+                      size="sm"
+                      colorScheme="red"
+                      variant="outline"
+                      onClick={handleStopA}
+                      isDisabled={!runningA || bootingA}
+                      isLoading={loadingStopA}
+                    >
+                      Parar
+                    </Button>
+                    <Button size="sm" colorScheme="blue" isDisabled>
+                      Aplicar
+                    </Button>
                   </HStack>
-                </Stack>
-  
-                <Divider my={4} />
-  
-                {/* Stream */}
-                <Heading size="sm" mb={2}>Stream</Heading>
-                <AspectRatio ratio={16 / 9} rounded="lg" overflow="hidden" bg="black">
-                  <Skeleton isLoaded={false}>
-                    <Image alt="stream" src="" objectFit="cover" />
-                  </Skeleton>
-                </AspectRatio>
+                </Box>
+              </Flex>
+
+              {/* Stream */}
+              <Box
+                borderWidth="1px"
+                borderRadius="md"
+                bg="bg.subtle"
+                h="260px"
+                mb={4}
+                overflow="hidden"
+                position="relative"
+              >
+                {/* Overlay de boot */}
+                {bootingA && (
+                  <Center position="absolute" inset={0} bg="blackAlpha.400" zIndex={1}>
+                    <Spinner color="blue.300" thickness="3px" />
+                  </Center>
+                )}
+                <CameraStream cameraId={CAMERA_ID_A} online={runningA} ratio={16/9} />
               </Box>
-  
-              <Box p={5} borderTop="1px" borderColor="border.default">
-                <HStack w="full" gap={3}>
-                  <Text fontSize="sm" color={subtle}>Processamento</Text>
-                  <Progress flex="1" value={30} rounded="full" />
-                  <CircularProgress value={30} />
-                </HStack>
-              </Box>
+
+              {/* Footer (placeholder) */}
+              <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" h="52px" />
             </Box>
           </GridItem>
-  
-          {/* Linha B */}
+
+          {/* Linha B (ainda estática) */}
           <GridItem>
-            <Box {...cardProps}>
-              <Box p={5} borderBottom="1px" borderColor="border.default">
-                <HStack w="full" gap={3}>
-                  <Heading size="md">{linhaB.nome}</Heading>
-                  <Badge colorScheme={linhaB.online ? 'green' : 'gray'}>
-                    {linhaB.online ? 'Online' : 'Offline'}
-                  </Badge>
-                  <Tag size="sm">item: {linhaB.item}</Tag>
-                  <Tag size="sm">caixa: {linhaB.caixa}</Tag>
-                  <Tag size="sm" variant="subtle">perfil: {linhaB.perfil}</Tag>
-                  <Spacer />
-                  <Tooltip label="Recarregar stream">
-                    <IconButton aria-label="reload" icon={<RepeatIcon />} variant="ghost" />
-                  </Tooltip>
-                </HStack>
-              </Box>
-  
-              <Box p={5}>
-                <Stack direction={{ base: 'column', md: 'row' }} gap={4} mb={4} flexWrap="wrap">
-                  <Box minW="230px">
-                    <Text fontSize="sm" mb={1}>Trocar produto</Text>
-                    <HStack gap={2}>
-                      <Select placeholder="selecione…">
-                        <option>glifosato_dipil_480</option>
-                      </Select>
-                      <Button>Aplicar</Button>
-                    </HStack>
-                  </Box>
-  
-                  <Box>
-                    <Text fontSize="sm" mb={1}>Camada</Text>
-                    <Input w="120px" placeholder="—" isDisabled />
-                  </Box>
-  
-                  <Box>
-                    <Text fontSize="sm" mb={1}>Contagem</Text>
-                    <Input w="140px" placeholder="—" isDisabled />
-                  </Box>
-  
-                  <Spacer />
-                  <HStack gap={2}>
-                    <Button colorScheme="green" isDisabled>Iniciar</Button>
-                    <Button colorScheme="red" variant="outline" isDisabled>Parar</Button>
+            <Box borderWidth="1px" borderRadius="md" bg="bg.surface" p={4}>
+              <Heading size="md" mb={4}>Linha B</Heading>
+
+              <Flex direction={{ base: 'column', md: 'row' }} gap={6} mb={4}>
+                {/* DataList */}
+                <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" p={3} flex="1">
+                  <DataList.Root orientation="horizontal" divideY="1px">
+                    <DataList.Item>
+                      <DataList.ItemLabel>Status</DataList.ItemLabel>
+                      <DataList.ItemValue>
+                        <Badge colorScheme="gray">Offline</Badge>
+                      </DataList.ItemValue>
+                    </DataList.Item>
+                    <DataList.Item>
+                      <DataList.ItemLabel>Item</DataList.ItemLabel>
+                      <DataList.ItemValue>item_detector</DataList.ItemValue>
+                    </DataList.Item>
+                    <DataList.Item>
+                      <DataList.ItemLabel>Perfil</DataList.ItemLabel>
+                      <DataList.ItemValue>— × —</DataList.ItemValue>
+                    </DataList.Item>
+                  </DataList.Root>
+                </Box>
+
+                {/* Select v3 + botões (placeholders) */}
+                <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" p={3} flex="1">
+                  <Select.Root collection={produtosCollection} size="sm" width="100%">
+                    <Select.HiddenSelect />
+                    <Select.Label>Trocar produto</Select.Label>
+                    <Select.Control>
+                      <Select.Trigger>
+                        <Select.ValueText placeholder="Selecione um produto" />
+                      </Select.Trigger>
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {categorias.map(([categoria, items]) => (
+                            <Select.ItemGroup key={categoria}>
+                              <Select.ItemGroupLabel>{categoria}</Select.ItemGroupLabel>
+                              {items.map((item) => (
+                                <Select.Item item={item} key={item.value}>
+                                  {item.label}
+                                  <Select.ItemIndicator />
+                                </Select.Item>
+                              ))}
+                            </Select.ItemGroup>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Portal>
+                  </Select.Root>
+
+                  <HStack spacing={2} mt={3}>
+                    <Button size="sm" colorScheme="green">Iniciar</Button>
+                    <Button size="sm" colorScheme="red" variant="outline">Parar</Button>
+                    <Button size="sm" colorScheme="blue">Aplicar</Button>
                   </HStack>
-                </Stack>
-  
-                <Divider my={4} />
-  
-                <Heading size="sm" mb={2}>Stream</Heading>
-                <AspectRatio ratio={16 / 9} rounded="lg" bg="gray.900" color="gray.400">
-                  <Flex align="center" justify="center">
-                    <Text>Sem stream disponível</Text>
-                  </Flex>
-                </AspectRatio>
-  
-                <Tabs mt={6} variant="enclosed">
-                  <TabList>
-                    <Tab>Logs</Tab>
-                    <Tab>Diagnóstico</Tab>
-                  </TabList>
-                  <TabPanels>
-                    <TabPanel>
-                      <VStack align="stretch" spacing={2} fontSize="sm">
-                        <Text>[15:20:47] aguardando sinal…</Text>
-                        <Text>[15:21:02] câmera offline</Text>
-                      </VStack>
-                    </TabPanel>
-                    <TabPanel>
-                      <Text fontSize="sm" color={subtle}>Nenhum erro crítico.</Text>
-                    </TabPanel>
-                  </TabPanels>
-                </Tabs>
-              </Box>
+                </Box>
+              </Flex>
+
+              <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" h="260px" mb={4} />
+              <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" h="52px" />
             </Box>
           </GridItem>
         </Grid>
-  
-        {/* Logs globais */}
-        <Box mt={6} {...cardProps}>
-          <Box p={5} borderBottom="1px" borderColor="border.default">
-            <Heading size="sm">Logs</Heading>
-          </Box>
-          <Box p={5}>
-            <VStack align="stretch" spacing={1} fontSize="sm" color={subtle} maxH="220px" overflow="auto">
-              <Text>[15:20:45] sistema iniciado</Text>
-              <Text>[15:20:47] conexão estabelecida</Text>
-            </VStack>
-          </Box>
+
+        {/* Logs globais (placeholder) */}
+        <Box borderWidth="1px" borderRadius="md" bg="bg.surface" p={4} mt={6}>
+          <Heading size="sm" mb={2}>Logs</Heading>
+          <Box borderWidth="1px" borderRadius="md" bg="bg.subtle" h="140px" />
         </Box>
-      </Box>
-    )
-  }
+      </Container>
+    </Box>
+  )
+}
