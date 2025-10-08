@@ -30,7 +30,7 @@ async def send_dashboard_updates(app):
 
             # Processar os dados para o formato que o dashboard espera
             cameras_ativas = sum(1 for cam in summary_data if cam.get('running'))
-            total_cameras = len(app.state.registered_cameras)
+            total_cameras = len(orchestrator.get_registered_cameras())
 
             dashboard_payload = {
                 "type": "dashboard_update",

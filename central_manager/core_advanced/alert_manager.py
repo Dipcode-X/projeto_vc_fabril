@@ -2,6 +2,7 @@ import paho.mqtt.client as mqtt
 import threading
 import time
 import logging
+import json
 
 # Configuração do Logger
 logger = logging.getLogger(__name__)
@@ -21,9 +22,12 @@ class AlertManager:
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
 
-        # Inicia a thread de gerenciamento da conexão
-        self._connection_thread = threading.Thread(target=self._manage_connection, daemon=True)
-        self._connection_thread.start()
+        # Conecta e inicia o loop em uma thread de fundo. A biblioteca gerencia a reconexão.
+        try:
+            self._client.connect_async(self.broker_ip, self.broker_port, 60)
+            self._client.loop_start() # Inicia a thread de rede que lida com reconexões
+        except Exception as e:
+            logger.error(f"[MQTT] Erro ao iniciar conexão: {e}")
 
     def _on_connect(self, client, userdata, flags, rc):
         """Callback para quando a conexão é estabelecida."""
@@ -36,35 +40,30 @@ class AlertManager:
 
     def _on_disconnect(self, client, userdata, rc):
         """Callback para quando a conexão é perdida."""
-        logger.warning(f"[MQTT] Desconectado do broker. Tentando reconectar...")
+        logger.warning(f"[MQTT] Desconectado do broker. A reconexão será tentada automaticamente.")
         self._is_connected = False
-
-    def _manage_connection(self):
-        """
-        Loop para manter a conexão MQTT ativa. Roda em uma thread separada.
-        """
-        while True:
-            if not self._is_connected:
-                try:
-                    # Tenta conectar e entra no loop de rede
-                    self._client.connect(self.broker_ip, self.broker_port, 60)
-                    self._client.loop_forever() # Bloqueia aqui até desconectar
-                except Exception as e:
-                    logger.error(f"[MQTT] Erro na conexão: {e}. Tentando novamente em 5 segundos.")
-                    time.sleep(5)
-            time.sleep(1) # Pausa para evitar uso excessivo de CPU se loop_forever sair
 
     def send_alert(self, topic, message):
         """Publica um alerta em um tópico específico."""
-        if self.is_connected:
+        if self._is_connected:
             try:
                 self._client.publish(topic, message, qos=1)
                 logger.info(f"Alerta enviado ao tópico '{topic}': {message}")
-                time.sleep(0.1) # Adicionado para garantir o envio
             except Exception as e:
                 logger.error(f"Falha ao enviar alerta para o tópico '{topic}': {e}")
         else:
             logger.warning(f"[MQTT] Não foi possível enviar alerta. Cliente não conectado.")
+
+    def publish_json(self, topic, payload, qos=1, retain=False):
+        """Publica payload JSON em um tópico específico, com QoS e retain opcionais."""
+        if self._is_connected:
+            try:
+                self._client.publish(topic, json.dumps(payload), qos=qos, retain=retain)
+                logger.info(f"[MQTT] JSON publicado em '{topic}': {payload} (qos={qos}, retain={retain})")
+            except Exception as e:
+                logger.error(f"Falha ao publicar JSON para o tópico '{topic}': {e}")
+        else:
+            logger.warning(f"[MQTT] Não foi possível publicar JSON. Cliente não conectado.")
 
     @property
     def is_connected(self):

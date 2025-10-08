@@ -9,6 +9,7 @@ import uvicorn
 import os
 from fastapi import FastAPI, APIRouter
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import logging
 
@@ -16,6 +17,8 @@ from central_manager.core_advanced.orchestrator import Orchestrator
 from central_manager.core_advanced.alert_manager import AlertManager
 from central_manager.core_advanced.config import MQTT_CONFIG
 from central_manager.api.endpoints import dashboard, cameras, setores, produtos, websocket, linhas, streams
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.exception_handlers import http_exception_handler
 
 # --- API Router Setup ---
 api_router = APIRouter()
@@ -91,9 +94,32 @@ def create_app():
     # --- API Routers ---
     app.include_router(api_router, prefix="/api/v1")
 
+    # --- React App Static (served at /app) ---
+    react_build_dir = "central_manager/static/react"
+    if os.path.isdir(react_build_dir):
+        app.mount("/app", StaticFiles(directory=react_build_dir, html=True), name="react_app")
+    else:
+        logging.getLogger("FastAPI-Startup").warning(
+            f"React build directory not found: {react_build_dir}. Run 'npm run build' inside 'frontend/' to generate it."
+        )
+
     # --- Static Files (must be last) ---
     # Mount the static directory to serve the frontend
     app.mount("/", StaticFiles(directory="central_manager/static", html=True), name="static")
+
+    # --- SPA Fallback for React (/app/*) ---
+    @app.exception_handler(StarletteHTTPException)
+    async def spa_fallback(request, exc):
+        # If a 404 occurs, check if it's an /app route and not an asset
+        if exc.status_code == 404 and request.url.path.startswith('/app'):
+            # Don't redirect asset requests (e.g., .js, .css)
+            path = request.url.path
+            if '.' not in path.split('/')[-1]:
+                # Serve the React app's index.html
+                return FileResponse("central_manager/static/react/index.html")
+        
+        # For all other errors, use the default handler
+        return await http_exception_handler(request, exc)
 
     return app
 
@@ -105,12 +131,10 @@ async def get_status():
     """Returns the current status of the API."""
     return {"status": "ok", "message": "SIAC API is running."}
 
-
 if __name__ == "__main__":
     uvicorn.run(
         "central_manager.api.main:app", 
         host="0.0.0.0", 
         port=8000, 
-        reload=True, 
-        reload_dirs=["central_manager"]
+        reload=False,
     )

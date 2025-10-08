@@ -1,0 +1,9 @@
+# YOLOv8 data config for ac_madepil (single class)
+# Ajuste o caminho abaixo se o projeto for movido
+path: c:/Users/ti-005/Desktop/projeto_vc_fabril/training/dataset/3_ac_madepil
+train: images/train
+val: images/val
+
+# Número de classes e nomes
+nc: 1
+names: [ac_madepil]

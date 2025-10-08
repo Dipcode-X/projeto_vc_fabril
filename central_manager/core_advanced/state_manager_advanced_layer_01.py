@@ -210,6 +210,21 @@ class SimpleStateManager:
         self.logger.info(f"Memória espacial: {len(itens_novos)}/{len(itens_atuais)} itens são novos")
         return itens_novos
     
+    def _validar_memoria_espacial(self, itens_iniciais, itens_finais):
+        """Calcula o percentual de itens realmente novos usando a memória espacial.
+        itens_iniciais é mantido para compatibilidade, mas a validação compara itens_finais
+        com as camadas anteriores salvas em self.posicoes_itens_por_camada.
+        """
+        try:
+            if not self.usar_memoria_espacial:
+                return 1.0
+            itens_novos = self._verificar_itens_novos(itens_finais)
+            total = len(itens_finais) if itens_finais else 0
+            return (len(itens_novos) / total) if total > 0 else 0.0
+        except Exception as e:
+            self.logger.error(f"Erro em _validar_memoria_espacial: {e}")
+            return 0.0
+    
     def _atualizar_status_divisor(self, divisor_presente):
         """
         Atualiza o rastreamento do status do divisor para validação de saltos.
@@ -341,7 +356,7 @@ class SimpleStateManager:
         # Lógica normal até 8 itens (divisor obrigatório até 5 itens)
         if not self.camada_2_estabelecida:
             # Verificar se atingiu o mínimo para estabelecer (5 itens)
-            if contagem_atual >= self.config.get('ITENS_MINIMOS_CAMADA_2_ESTABELECIDA', 5):
+            if contagem_atual >= self.config.get('itens_minimos_camada_2_estabelecida', 5):
                 self.camada_2_estabelecida = True
                 self.logger.info(f"🎯 CAMADA 2 ESTABELECIDA com {contagem_atual} itens")
                 return True
@@ -352,7 +367,7 @@ class SimpleStateManager:
                     self.tempo_ultimo_divisor_ausente = tempo_atual
                 
                 tempo_carencia = tempo_atual - self.tempo_ultimo_divisor_ausente
-                carencia_maxima = self.config.get('TEMPO_CARENCIA_DIVISOR_AUSENTE', 3.0)
+                carencia_maxima = self.config.get('tempo_carencia_divisor_ausente', 3.0)
                 
                 if tempo_carencia > carencia_maxima:
                     self.logger.warning(f"❌ Divisor ausente há {tempo_carencia:.1f}s na camada 2. Voltando para camada 1")
@@ -404,17 +419,17 @@ class SimpleStateManager:
             
             # Se o tempo de validação expirou, tomar uma decisão
             if tempo_validacao > self.config['tempo_carencia_salto']:
-                # Usar memória espacial para validar
-                novos_itens_percent = self._validar_memoria_espacial(self.itens_salto_suspeito, itens_na_roi)
+                # Revalidar usando o estado do divisor; fallback para aceitar sem memória espacial
+                salto_atual = contagem_atual - self.contagem_anterior_camada_2
+                decisao_divisor = self._validar_salto_por_divisor(contagem_atual, salto_atual, tempo_validacao)
                 
-                if novos_itens_percent >= self.config['percentual_novos_itens_minimo']:
-                    # Salto confirmado como válido
-                    self.logger.info(f"✅ SALTO CONFIRMADO: {self.contagem_anterior_camada_2} → {contagem_atual} ({novos_itens_percent:.0%} de itens novos)")
-                    self.contagem_anterior_camada_2 = contagem_atual
-                else:
-                    # Salto considerado falso positivo
-                    self.logger.warning(f"❌ FALSO POSITIVO CONFIRMADO: {self.contagem_anterior_camada_2} → {contagem_atual} ({novos_itens_percent:.0%} de itens novos)")
+                if decisao_divisor == 'rejeitar':
+                    self.logger.warning(f"❌ FALSO POSITIVO CONFIRMADO: {self.contagem_anterior_camada_2} → {contagem_atual} (divisor instável após validação)")
                     self._voltar_para_aguardar_divisor()
+                else:
+                    # 'aceitar' ou 'validar' (ambíguo): aceitar por fallback sem memória espacial
+                    self.logger.info(f"✅ SALTO CONFIRMADO: {self.contagem_anterior_camada_2} → {contagem_atual} (fallback sem memória espacial)")
+                    self.contagem_anterior_camada_2 = contagem_atual
                 
                 self._reset_controles_salto()
             
@@ -646,8 +661,9 @@ class SimpleStateManager:
                 if self.ultima_contagem_valida > 0 and self.ultima_contagem_valida < self.PERFIL_CAIXA['itens_por_camada']:
                     if self._pode_alertar("caixa_incompleta", 3.0):
                         self._enviar_alerta_caixa_incompleta(self.ultima_contagem_valida)
-                        self.logger.info("Caixa incompleta removida. Resetando o sistema.")
-                        self._resetar_sistema() # CORREÇÃO: Resetar completamente
+                        self.logger.info("Caixa incompleta removida. Mantendo LED ON até ROI retornar.")
+                        self.caixa_ausente_desde = tempo_atual
+                        self._transitar_para(self.ESTADOS['CAIXA_AUSENTE'], "Caixa incompleta removida - LED ON até ROI retornar")
                         return
                 
                 # Se a contagem for 0 ou o alerta não puder ser enviado, apenas transita
@@ -697,7 +713,18 @@ class SimpleStateManager:
             if not roi_estavel:
                 if self._pode_alertar("caixa_pos_camada_completa", 5.0):
                     self.logger.error(f"🚨 ALERTA: Caixa removida após completar camada {self.camada_atual}!")
-                self._transitar_para(self.ESTADOS['AGUARDANDO_CAIXA'], "ROI perdida aguardando divisor")
+                    # Publicar ROI ON + evento específico
+                    self._publish_roi_state("ON", reason="roi_lost_after_layer_complete", extra={
+                        "completed_layer": self.camada_atual,
+                        "expected_total_layers": self.PERFIL_CAIXA['total_camadas'],
+                    })
+                    self._publish_roi_event("roi_removed_after_layer_complete", {
+                        "completed_layer": self.camada_atual
+                    })
+                # Acender LED independentemente de debounce de alerta
+                self._enviar_comando_led("on")
+                self.caixa_ausente_desde = tempo_atual
+                self._transitar_para(self.ESTADOS['CAIXA_AUSENTE'], "ROI perdida aguardando divisor - LED ON até ROI retornar")
                 return
             
             if divisor_estavel and self.contagem_estabilizada == 0:

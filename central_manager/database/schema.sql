@@ -75,6 +75,7 @@ CREATE TABLE cameras (
     device_index INTEGER,           -- Índice da câmera USB (0, 1, 2...)
     ip_address VARCHAR(45),         -- IP se for câmera de rede
     porta INTEGER,                  -- Porta se for câmera de rede
+    bancada VARCHAR(10),            -- Bancada física (A/B)
     
     -- Configurações de vídeo
     resolucao_width INTEGER DEFAULT 1920,

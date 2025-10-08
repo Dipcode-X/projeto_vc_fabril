@@ -84,7 +84,6 @@ class Linha(LinhaBase):
 class ProdutoBase(BaseModel):
     nome: str = Field(..., max_length=100)
     descricao: Optional[str] = Field(None, max_length=500)
-    modelo_yolo: Optional[str] = Field(None, max_length=200)
     config_json: Optional[Dict[str, Any]] = Field(default_factory=dict)
     ativo: bool = Field(default=True)
 
@@ -93,6 +92,8 @@ class ProdutoCreate(ProdutoBase):
 
 class Produto(ProdutoBase):
     id: int
+    itens_por_camada: Optional[int] = None
+    max_camadas: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -108,8 +109,13 @@ class CameraBase(BaseModel):
     produto_id: int
     nome: str = Field(..., max_length=100)
     device_index: Optional[int] = None  # Para câmeras USB
-    ip_address: Optional[str] = Field(None, max_length=45)  # Para câmeras IP
+    ip_address: Optional[str] = Field(None, max_length=1024)  # IP ou URL completa (RTSP/HTTP)
     porta: Optional[int] = None
+    bancada: Optional[str] = Field(None, max_length=10)
+    # Configurações de vídeo (opcionais, usam defaults do DB se não fornecidos)
+    resolucao_width: Optional[int] = Field(default=1920)
+    resolucao_height: Optional[int] = Field(default=1080)
+    fps: Optional[int] = Field(default=30)
     usuario: Optional[str] = Field(None, max_length=50)
     senha: Optional[str] = Field(None, max_length=100)
     config_json: Optional[Dict[str, Any]] = Field(default_factory=dict)

@@ -1,0 +1,9 @@
+# YOLOv8 data config for ROI 19x28 (single class)
+# Ajuste o caminho abaixo se o projeto for movido
+path: c:/Users/ti-005/Desktop/projeto_vc_fabril/training/dataset/4_roi_20x21
+train: images/train
+val: images/val
+
+# Número de classes e nomes
+nc: 1
+names: [roi]

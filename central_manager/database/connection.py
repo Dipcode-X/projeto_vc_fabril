@@ -50,10 +50,27 @@ class DatabaseManager:
                     conn.commit()
                 
                 self.logger.info("Banco de dados inicializado com sucesso")
-            
+            # Sempre aplicar migrações leves independentemente de já existir
+            self._apply_migrations()
         except Exception as e:
             self.logger.error(f"Erro ao inicializar banco: {e}")
             raise
+
+    def _apply_migrations(self):
+        """Aplica migrações simples e idempotentes (ALTER TABLE ...)"""
+        try:
+            with self.get_connection() as conn:
+                cur = conn.cursor()
+                # cameras.bancada
+                cur.execute("PRAGMA table_info(cameras)")
+                cols = [row[1] for row in cur.fetchall()]
+                if 'bancada' not in cols:
+                    self.logger.info("Aplicando migração: adicionando coluna cameras.bancada")
+                    cur.execute("ALTER TABLE cameras ADD COLUMN bancada VARCHAR(10)")
+                    conn.commit()
+        except Exception as e:
+            # Não bloquear o sistema por falha de migração leve, mas logar
+            self.logger.error(f"Falha em migração leve do banco: {e}")
     
     @contextmanager
     def get_connection(self):
@@ -176,6 +193,29 @@ class DatabaseManager:
             rows = cursor.fetchall()
             return [database_models.Linha(**dict(row)) for row in rows]
     
+    def get_all_linhas_with_setor_info(self, ativo_only: bool = True) -> List[Dict[str, Any]]:
+        """Lista todas as linhas com informações do setor, usando um JOIN para eficiência."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            query = """
+                SELECT
+                    l.id, l.nome, l.setor_id, s.nome as setor_nome, l.ativo,
+                    l.created_at, l.updated_at
+                FROM linhas l
+                LEFT JOIN setores s ON l.setor_id = s.id
+            """
+            
+            if ativo_only:
+                query += " WHERE l.ativo = 1"
+            
+            query += " ORDER BY s.nome, l.nome"
+            
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            
+            return [dict(row) for row in rows]
+
     # =====================================================
     # PRODUTOS CRUD
     # =====================================================
@@ -268,12 +308,12 @@ class DatabaseManager:
             
             cursor.execute("""
                 INSERT INTO cameras (
-                    linha_id, produto_id, nome, device_index, ip_address, porta,
+                    linha_id, produto_id, nome, device_index, ip_address, porta, bancada,
                     resolucao_width, resolucao_height, fps, config_json, ativo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 camera.linha_id, camera.produto_id, camera.nome, 
-                camera.device_index, camera.ip_address, camera.porta,
+                camera.device_index, camera.ip_address, camera.porta, camera.bancada,
                 camera.resolucao_width, camera.resolucao_height, camera.fps,
                 str(camera.config_json), camera.ativo
             ))

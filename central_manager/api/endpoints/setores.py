@@ -1,34 +1,28 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.requests import Request
+from central_manager.database.connection import DatabaseManager
 
 router = APIRouter(
     prefix="/setores",
     tags=["Setores"],
 )
 
-# Dados de exemplo (mock)
-# No futuro, isso virá de um banco de dados ou arquivo de configuração
-DADOS_SETORES = [
-    {
-        "id": 1,
-        "nome": "Setor A",
-        "cameras_ativas": 1,
-        "total_cameras": 1
-    },
-    {
-        "id": 2,
-        "nome": "Setor B",
-        "cameras_ativas": 0,
-        "total_cameras": 2
-    }
-]
-
 @router.get("", summary="Lista todos os setores de produção")
 async def get_setores():
     """
-    Retorna uma lista de todos os setores monitorados, com um resumo
-    do status das câmeras em cada um.
+    Retorna uma lista de todos os setores monitorados com base no banco de dados.
+    Substitui os dados mockados para alinhar com câmeras e linhas reais.
     """
-    # Aqui, a lógica para verificar o status real das câmeras seria implementada.
-    # Por enquanto, retornamos os dados mockados.
-    return DADOS_SETORES
+    db = DatabaseManager()
+    setores_db = db.get_setores(ativo_only=True)
+
+    # Serializa apenas os campos necessários para o frontend
+    return [
+        {
+            "id": s.id,
+            "nome": s.nome,
+            "cameras_ativas": 0,      # Opcional: pode ser atualizado pelo WS/dash
+            "total_cameras": 0        # Opcional: pode ser atualizado pelo WS/dash
+        }
+        for s in setores_db
+    ]

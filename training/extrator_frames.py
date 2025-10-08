@@ -2,7 +2,7 @@ import cv2
 import os
 
 # --- Configurações ---
-VIDEO_SOURCE = r"c:\Users\ti-005\Desktop\projeto_vc_fabril\videos_test\WIN_20250721_09_03_05_Pro.mp4"
+VIDEO_SOURCE = r"c:\Users\ti-005\Desktop\projeto_vc_fabril\videos_test\WIN_20250915_13_02_22_Pro.mp4"
 OUTPUT_DIR = "dataset/images"
 FRAME_INTERVAL = 20 
 # ---------------------
