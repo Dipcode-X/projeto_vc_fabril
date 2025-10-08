@@ -18,31 +18,63 @@ export class UIComponents {
             warning: 'Atenção',
             unknown: 'Desconhecido'
         };
+        
+        // Custom display names requested by user
+        this.displayNameMap = {
+            setores: {
+                'Setor_Webcam_1753719041': 'CAMERA 1',
+                'Setor_Webcam_1753719323': 'CAMERA 2'
+            },
+            linhas: {
+                'Linha_Webcam_1753719041': 'LINHA C1',
+                'Linha_Webcam_1753719323': 'LINHA C2'
+            },
+            cameras: {
+                'Webcam_1753719041': 'id 1753719041',
+                'Webcam_1753719323': 'id 1753719323'
+            }
+        };
+    }
+    
+    getDisplaySetorName(name) {
+        return this.displayNameMap.setores[name] || name;
+    }
+    getDisplayLinhaName(name) {
+        return this.displayNameMap.linhas[name] || name;
+    }
+    getDisplayCameraName(name) {
+        return this.displayNameMap.cameras[name] || name;
     }
     
     /**
      * Cria card de setor com linhas e câmeras
      */
-    createSetorCard(setor, cameras) {
-        const setorCameras = cameras.filter(c => c.setor_id === setor.id);
-        const linhas = this.groupCamerasByLinha(setorCameras);
-        
+    createSetorCard(setor, cameras, linhas) {
         const card = document.createElement('div');
         card.className = 'setor-card';
+
+        // Se não houver linhas, mostra uma mensagem e retorna
+        const linhasContent = linhas.length > 0
+            ? linhas.map(linha => {
+                const linhaCameras = cameras.filter(c => c.linha_id === linha.id);
+                return this.createLinhaItem(linha, linhaCameras);
+            }).join('')
+            : '<p class="text-secondary text-center">Nenhuma linha de produção neste setor.</p>';
+
         card.innerHTML = `
             <div class="setor-header">
-                <div class="setor-title">${setor.nome}</div>
+                <div class="setor-title">${this.getDisplaySetorName(setor.nome)}</div>
             </div>
             
             <div class="setor-stats">
-                <span>📹 ${setorCameras.length} câmeras</span>
+                <span>📹 ${cameras.length} câmeras</span>
                 <span>🏭 ${linhas.length} linhas</span>
-                <span>${this.getSetorStatusIcon(setorCameras)} ${this.getSetorStatusText(setorCameras)}</span>
+                <span>${this.getSetorStatusIcon(cameras)} ${this.getSetorStatusText(cameras)}</span>
             </div>
             
             <div class="setor-content">
                 <div class="linhas-list">
-                    ${linhas.map(linha => this.createLinhaItem(linha, setorCameras)).join('')}
+                    ${linhasContent}
                 </div>
             </div>
         `;
@@ -77,23 +109,22 @@ export class UIComponents {
     /**
      * Cria item de linha com câmeras
      */
-    createLinhaItem(linha, allCameras) {
-        const linhaCameras = allCameras.filter(c => c.linha_id === linha.id);
-        
+    createLinhaItem(linha, linhaCameras) {
+        // Create a container for camera cards
+        const cameraCardsHTML = linhaCameras.length > 0 
+            ? linhaCameras.map(camera => this.createCameraCard(camera)).join('')
+            : '<p class="text-secondary text-center">Nenhuma câmera nesta linha.</p>';
+
         return `
             <div class="linha-item" data-linha-id="${linha.id}">
-                <div class="linha-info">
-                    <div class="linha-name">🏭 ${linha.nome}</div>
-                    <div class="linha-cameras">${linhaCameras.length} câmeras</div>
+                <div class="linha-header">
+                    <div class="linha-name">🏭 ${this.getDisplayLinhaName(linha.nome)}</div>
+                    <div class="linha-camera-count">${linhaCameras.length} câmeras</div>
                 </div>
                 
-                <div class="camera-status-dots">
-                    ${linhaCameras.map(camera => this.createCameraDot(camera)).join('')}
+                <div class="camera-grid">
+                    ${cameraCardsHTML}
                 </div>
-                
-                <button class="btn btn-sm btn-secondary" onclick="window.siacDashboard.showLinhaDetails(${linha.id})">
-                    <span class="btn-icon">👁️</span> Ver Detalhes
-                </button>
             </div>
         `;
     }
@@ -159,9 +190,9 @@ export class UIComponents {
     /**
      * Cria conteúdo detalhado da câmera para modal
      */
-    createCameraDetailContent(camera) {
+    createCameraDetailContent(camera, produtos) {
         const status = this.getCameraStatus(camera);
-        const produto = this.getProdutoName(camera.produto_id);
+        const produto = this.getProdutoName(camera.produto_id, produtos);
         
         return `
             <div class="camera-details">
@@ -219,6 +250,10 @@ export class UIComponents {
                         
                         <button class="btn btn-secondary" onclick="window.siacDashboard.refreshCameraStatus(${camera.id})">
                             <span class="btn-icon">🔄</span> Atualizar Status
+                        </button>
+                        
+                        <button class="btn btn-primary" onclick="window.siacDashboard.openCameraStream(${camera.id})">
+                            <span class="btn-icon">📹</span> Ver Câmera
                         </button>
                     </div>
                 </div>
@@ -311,10 +346,13 @@ export class UIComponents {
     /**
      * Obtém nome do produto por ID
      */
-    getProdutoName(produtoId) {
-        // Esta função será implementada quando tivermos acesso aos dados de produtos
-        // Por enquanto, retorna um placeholder
-        return produtoId ? `Produto ${produtoId}` : 'Nenhum produto selecionado';
+    getProdutoName(produtoId, produtos) {
+        if (!produtoId || !produtos || produtos.length === 0) {
+            return 'Nenhum produto selecionado';
+        }
+        
+        const produto = produtos.find(p => p.id === produtoId);
+        return produto ? produto.nome : `Produto desconhecido (ID: ${produtoId})`;
     }
     
     /**
@@ -475,6 +513,49 @@ export class UIComponents {
                 ` : ''}
             </div>
         `;
+    }
+    
+    /**
+     * Cria card de câmera
+     */
+    createCameraCard(camera) {
+        const status = this.getCameraStatus(camera);
+        const statusText = this.statusTexts[status] || 'Desconhecido';
+
+        // Note: This now returns an HTML string instead of a DOM element to be compatible with createLinhaItem
+        return `
+            <div class="camera-card status-${status}" data-camera-id="${camera.id}" onclick="window.siacDashboard.openCameraStream(${camera.id})">
+                <div class="status-indicator" title="${statusText}"></div>
+                <div class="camera-name">${this.getDisplayCameraName(camera.nome || `Câmera ${camera.id}`)}</div>
+                <div class="camera-details">
+                    <span><i class="fas fa-box-open"></i> Caixas: ${camera.status?.caixas_completas || 0}</span>
+                </div>
+                <div class="camera-actions">
+                    <button class="camera-info-btn" onclick="event.stopPropagation(); window.siacDashboard.showCameraModal(${camera.id})" title="Configurações e controles">⚙️</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * Card placeholder para ocupar coluna vazia
+     */
+    createSetorPlaceholderCard() {
+        const card = document.createElement('div');
+        card.className = 'setor-card placeholder';
+        card.innerHTML = `
+            <div class="setor-header">
+                <div class="setor-title">—</div>
+            </div>
+            <div class="setor-content">
+                <div class="empty-card">
+                    <div class="empty-icon">➕</div>
+                    <div class="empty-title">Vazio</div>
+                    <div class="empty-message">Espaço reservado</div>
+                </div>
+            </div>
+        `;
+        return card;
     }
 }
 

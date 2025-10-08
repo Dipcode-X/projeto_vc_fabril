@@ -19,8 +19,6 @@ async def get_dashboard_overview(request: Request):
     active_cameras = sum(1 for cam in all_cameras if cam.get('running'))
 
     return {
-        "system_status": "Online" if total_cameras > 0 and active_cameras > 0 else "Parcialmente Online",
         "cameras_active": active_cameras,
         "cameras_total": total_cameras,
-        "alerts_pending": 0, # Placeholder
     }

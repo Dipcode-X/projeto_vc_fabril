@@ -1,3 +1,11 @@
-opencv-contrib-python
-numpy
-ultralytics
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+starlette==0.27.0
+python-multipart==0.0.6
+paho-mqtt==1.6.1
+opencv-contrib-python==4.8.1.78
+numpy==1.24.3
+ultralytics==8.0.196
+pillow==10.2.0
+aiofiles==23.2.1

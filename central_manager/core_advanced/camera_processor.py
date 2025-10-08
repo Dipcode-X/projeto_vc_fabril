@@ -39,26 +39,40 @@ def filtrar_itens_na_roi(itens, caixas):
 
 class CameraProcessor:
     """Processa o feed de uma câmera, aplicando detecção e gerenciamento de estado."""
-    def __init__(self, output_queue: Queue, camera_source=0, conf_roi=0.5, conf_item=0.4, conf_divisor=0.25):
-        self.camera_source = camera_source
-        self.output_queue = output_queue
-        self.running = False
-        self.should_stop = False
-        self.reconnection_attempts = 0
-        self.was_ever_connected = False
-        self.disconnection_logged = False  # Flag para evitar spam de desconexão
+    def __init__(self, output_queue: Queue, camera_source=0, conf_roi=0.5, conf_item=0.4, conf_divisor=0.25, alert_manager=None, state_manager_cls=None):
         self.logger = SimpleLogger(f"Camera-{camera_source}")
-        self.visualizer = Visualizer(CORES_LEGACY)
-        self.detector = YOLODetector(confianca_roi=conf_roi, confianca_item=conf_item, confianca_divisor=conf_divisor)
-        self.state_manager = SimpleStateManager()
-        self.cap = None
-        self.width = 0
-        self.height = 0
-        self.paused = False
-        self.detection_enabled = True
-        # --- Informações do Produto ---
-        self.product_id = 1 # Placeholder
-        self.product_name = "Produto Padrão" # Placeholder
+        self.logger.info(f"--- INICIALIZANDO PROCESSADOR PARA CÂMERA {camera_source} ---")
+        try:
+            self.camera_source = camera_source
+            self.output_queue = output_queue
+            self.running = False
+            self.should_stop = False
+            self.reconnection_attempts = 0
+            self.was_ever_connected = False
+            self.disconnection_logged = False  # Flag para evitar spam de desconexão
+            self.visualizer = Visualizer(CORES_LEGACY)
+            self.logger.info("Visualizer inicializado.")
+            self.detector = YOLODetector(confianca_roi=conf_roi, confianca_item=conf_item, confianca_divisor=conf_divisor)
+            self.logger.info("Detector YOLO inicializado.")
+            # Permite injeção do gerenciador de estado; mantém padrão para o avançado
+            sm_cls = state_manager_cls or SimpleStateManager
+            self.state_manager = sm_cls(alert_manager=alert_manager, camera_id=self.camera_source)  # Passa o alert_manager e camera_id
+            try:
+                self.logger.info(f"StateManager inicializado ({getattr(sm_cls, '__name__', str(sm_cls))}).")
+            except Exception:
+                self.logger.info("StateManager inicializado.")
+            self.cap = None
+            self.width = 0
+            self.height = 0
+            self.paused = False
+            self.detection_enabled = True
+            # --- Informações do Produto ---
+            self.product_id = 1 # Placeholder
+            self.product_name = "Produto Padrão" # Placeholder
+            self.logger.info(f"Processador para câmera {camera_source} inicializado com sucesso.")
+        except Exception as e:
+            self.logger.error(f"Falha crítica ao inicializar o CameraProcessor para {camera_source}: {e}", exc_info=True)
+            raise
 
     def stop(self):
         """Sinaliza para a thread de processamento parar."""
@@ -128,14 +142,20 @@ class CameraProcessor:
 
     def run(self):
         """O loop principal de processamento da câmera."""
-        self.cap = cv2.VideoCapture(self.camera_source)
-        if not self.cap.isOpened():
-            self.logger.warning(f"Câmera {self.camera_source} não encontrada - aguardando conexão...")
+        try:
+            self.cap = cv2.VideoCapture(self.camera_source)
+            if not self.cap.isOpened():
+                raise cv2.error(f"Não foi possível abrir a câmera com índice {self.camera_source}")
+        except cv2.error as e:
+            # Não desativa permanentemente: deixa o loop de reconexão tentar novamente
+            self.logger.error(f"Falha ao inicializar a câmera {self.camera_source}. Entrando em modo de reconexão. Erro: {e}")
             self.running = False
-        else:
+
+        if not self.should_stop and self.cap and self.cap.isOpened():
             self.logger.info(f"Câmera {self.camera_source} aberta com sucesso ({int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))}x{int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))})")
             self.running = True
             self.was_ever_connected = True
+            self.reconnection_attempts = 0
 
         # Loop principal - continua rodando mesmo se a câmera se desconectar
         while not self.should_stop:
@@ -175,7 +195,7 @@ class CameraProcessor:
                     self.reconnection_attempts = 0
                     self.disconnection_logged = False
                 else:
-                    time.sleep(15)  # Aguarda 15 segundos antes de tentar novamente
+                    time.sleep(5)  # Aguarda 5 segundos antes de tentar novamente
                     
             else:
                 # Câmera pausada

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏭 SIAC Industrial Dashboard</title>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=20250828-1054">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -28,7 +29,7 @@
                     <span class="status-dot offline"></span>
                     <span class="status-text">Conectando...</span>
                 </div>
-                <div class="system-time" id="systemTime"></div>
+                <div class="system-time" id="systemTime">--:--:--</div>
             </div>
         </header>
 
@@ -37,24 +38,12 @@
             <!-- Loading State -->
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="loading-spinner"></div>
-                <p>Carregando dados do sistema...</p>
+                <p id="loadingText">Carregando dados do sistema...</p>
             </div>
 
             <!-- Dashboard Overview -->
             <section class="dashboard-overview" id="dashboardOverview">
                 <div class="overview-cards">
-                    <div class="card status-card">
-                        <div class="card-header">
-                            <h3>📊 Status Geral</h3>
-                        </div>
-                        <div class="card-content">
-                            <div class="metric">
-                                <span class="metric-value" id="systemStatus">🟡 Inicializando</span>
-                                <span class="metric-label">Sistema</span>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="card cameras-card">
                         <div class="card-header">
                             <h3>📹 Câmeras</h3>
@@ -70,17 +59,24 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="card alerts-card">
-                        <div class="card-header">
-                            <h3>⚠️ Alertas</h3>
+            <!-- Inline Stream Panel (below cards) -->
+            <section id="streamPanel" class="stream-panel hidden" aria-hidden="true">
+                <div class="stream-panel-header">
+                    <h3 id="streamPanelTitle">Análise de Câmera</h3>
+                    <button id="closeStreamPanel" class="btn btn-icon" aria-label="Fechar">✖</button>
+                </div>
+                <div class="stream-panel-body">
+                    <div class="stream-container">
+                        <img id="streamPanelImg" src="" alt="Stream da Câmera">
+                        <div class="stream-status">
+                            <span id="streamPanelStatus" class="tag is-warning">Conectando...</span>
                         </div>
-                        <div class="card-content">
-                            <div class="metric">
-                                <span class="metric-value" id="alertsPending">0</span>
-                                <span class="metric-label">Pendentes</span>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="stream-logs">
+                        <div id="streamLogContent" class="logs-content"></div>
                     </div>
                 </div>
             </section>
@@ -97,47 +93,77 @@
                 
                 <div class="setores-grid" id="setoresGrid">
                     <!-- Setores serão carregados dinamicamente -->
+                    <div class="loading-text">Carregando setores...</div>
                 </div>
             </section>
 
             <!-- Camera Detail Modal -->
-            <div class="modal-overlay" id="cameraModal">
-                <div class="modal">
-                    <div class="modal-header">
-                        <h3 id="modalTitle">📹 Detalhes da Câmera</h3>
-                        <button class="modal-close" id="modalClose">&times;</button>
-                    </div>
-                    <div class="modal-content" id="modalContent">
+            <div class="modal" id="cameraModal">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title" id="cameraModalTitle">Detalhes da Câmera</p>
+                        <button class="delete" aria-label="close" id="closeCameraModal"></button>
+                    </header>
+                    <section class="modal-card-body" id="cameraModalContent">
                         <!-- Conteúdo será carregado dinamicamente -->
-                    </div>
+                        <div class="loading-text">Carregando informações da câmera...</div>
+                    </section>
                 </div>
             </div>
 
             <!-- Product Selection Modal -->
-            <div class="modal-overlay" id="productModal">
-                <div class="modal">
-                    <div class="modal-header">
-                        <h3>📦 Selecionar Produto</h3>
-                        <button class="modal-close" id="productModalClose">&times;</button>
-                    </div>
-                    <div class="modal-content">
+            <div class="modal" id="productModal">
+                <div class="modal-background"></div>
+                <div class="modal-card">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title">📦 Selecionar Produto</p>
+                        <button class="delete" aria-label="close" id="closeProductModal"></button>
+                    </header>
+                    <section class="modal-card-body">
                         <div class="product-list" id="productList">
                             <!-- Lista de produtos será carregada -->
+                            <div class="loading-text">Carregando lista de produtos...</div>
                         </div>
-                        <div class="modal-actions">
-                            <button class="btn btn-secondary" id="cancelProductBtn">Cancelar</button>
-                            <button class="btn btn-primary" id="applyProductBtn">Aplicar</button>
-                        </div>
-                    </div>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <button class="button is-danger" id="cancelProductBtn">Cancelar</button>
+                        <button class="button is-primary" id="applyProductBtn">Aplicar</button>
+                    </footer>
                 </div>
             </div>
-        </main>
 
-        <!-- Toast Notifications -->
-        <div class="toast-container" id="toastContainer"></div>
-    </div>
+            <!-- Stream Modal -->
+            <div class="modal" id="streamModal">
+                <div class="modal-background"></div>
+                <div class="modal-card modal-large">
+                    <header class="modal-card-head">
+                        <p class="modal-card-title" id="streamModalTitle">Análise de Câmera</p>
+                        <button class="delete" aria-label="close" id="closeStreamModal"></button>
+                    </header>
+                    <section class="modal-card-body">
+                        <div class="stream-container">
+                            <img id="cameraStreamImg" src="" alt="Stream da Câmera">
+                            <div class="stream-status">
+                                <span id="streamStatusIndicator" class="tag is-warning">Conectando...</span>
+                            </div>
+                        </div>
+                    </section>
+                    <footer class="modal-card-foot">
+                        <div class="stream-info">
+                            <p id="streamCameraName"><strong>Câmera:</strong> <span>-</span></p>
+                            <p id="streamCameraStatus"><strong>Status:</strong> <span>-</span></p>
+                        </div>
+                    </footer>
+                </div>
+            </div>
 
-    <!-- Scripts -->
-    <script type="module" src="js/dashboard.js"></script>
-</body>
+            <!-- Toast Notifications -->
+            <div class="toast-container" id="toastContainer"></div>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+        <script type="module" src="js/dashboard.js?v=20250828-1054"></script>
+    </body>
 </html>

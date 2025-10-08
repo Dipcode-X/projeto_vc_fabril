@@ -32,3 +32,22 @@ STATE_CONFIG = {
     'tempo_maximo_instabilidade_divisor': 2.0,  # Tempo após perda do divisor considerado suspeito
     'usar_validacao_divisor_salto': True,  # Habilitar validação por divisor
 }
+
+MQTT_CONFIG = {
+    'broker_ip': '10.1.4.12', # IP do broker MQTT (alinhado ao ESP32)
+    'broker_port': 1883, # Porta do broker MQTT
+    'client_id': 'siac_central_manager', # ID do cliente para conexão
+    'topics': {
+        'caixa_incompleta': 'siac/alertas/caixa_incompleta',
+        'caixa_removida': 'siac/alertas/caixa_removida',
+        'caixa_completa': 'siac/alertas/caixa_completa',
+        'falso_positivo': 'siac/alertas/falso_positivo',
+        'erro_sistema': 'siac/alertas/erro_sistema',
+        'roi_state_base': 'siac/roi/{camera_id}/state',
+        'roi_event_base': 'siac/roi/{camera_id}/event',
+        'led_command_default': 'guizo/00',
+        'led_topic_map': {
+            '0': 'guizo/00',  # Mapeia camera_id "0" ao tópico do ESP32
+        }
+    }
+}

@@ -23,17 +23,17 @@ class SimpleLogger:
         
         return False
     
-    def info(self, msg):
+    def info(self, msg, **kwargs):
         if self._should_log(msg, "INFO", 2.0):  # Mínimo 2s entre logs iguais
             print(f"[{self.name}] INFO: {msg}")
     
-    def warning(self, msg):
+    def warning(self, msg, **kwargs):
         if self._should_log(msg, "WARNING", 3.0):  # Mínimo 3s entre warnings iguais
             print(f"[{self.name}] WARNING: {msg}")
     
-    def error(self, msg):
+    def error(self, msg, **kwargs):
         if self._should_log(msg, "ERROR", 1.0):  # Sempre mostrar erros
             print(f"[{self.name}] ERROR: {msg}")
     
-    def debug(self, msg):
+    def debug(self, msg, **kwargs):
         pass  # Silenciar debug completamente
