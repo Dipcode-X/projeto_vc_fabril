@@ -11,6 +11,19 @@ function resolveApiV1(baseOverride) {
   return `${window.location.origin}/api/v1`
 }
 
+/**
+ * MJPEG stream viewer
+ * Props:
+ * - cameraId: number|string
+ * - online: boolean
+ * - ratio: number (ex.: 16/9)
+ * - apiBase?: string (sobrepõe VITE_API_URL)
+ * - autoRetry?: boolean
+ * - retryDelays?: number[] (ms)
+ * - borderRadius?: Chakra radius token
+ * - showSpinner?: boolean (controla loader interno) [default: true]
+ * - spinnerColor?: string (cor do loader interno) [default: 'blue.400']
+ */
 export default function CameraStream({
   cameraId,
   online = true,
@@ -19,6 +32,8 @@ export default function CameraStream({
   autoRetry = true,
   retryDelays = [1000, 2000, 5000], // ms
   borderRadius = 'md',
+  showSpinner = true,
+  spinnerColor = 'blue.400',
 }) {
   const [imgSrc, setImgSrc] = useState('')
   const [loading, setLoading] = useState(true)
@@ -96,9 +111,9 @@ export default function CameraStream({
   return (
     <AspectRatio ratio={ratio} rounded={borderRadius} overflow="hidden" bg="black" position="relative">
       <>
-        {loading && (
+        {loading && showSpinner && (
           <Center position="absolute" inset={0}>
-            <Spinner color="blue.400" />
+            <Spinner color={spinnerColor} />
           </Center>
         )}
         {error && (

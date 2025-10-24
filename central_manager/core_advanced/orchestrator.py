@@ -29,22 +29,35 @@ class Orchestrator:
             db_cameras = self.db_manager.get_all_cameras(ativo_only=True)
 
             camera_sources = []
+            seen_sources = set()
             for cam in db_cameras:
                 # Para câmeras USB, a fonte é o device_index
                 if cam.device_index is not None:
-                    camera_sources.append(cam.device_index)
-                    self.logger.info(
-                        f"  -> Encontrada Câmera USB: ID {cam.id}, Índice {cam.device_index} ({cam.nome})"
-                    )
+                    if cam.device_index in seen_sources:
+                        self.logger.warning(
+                            f"Ignorando câmera duplicada com device_index={cam.device_index} (ID {cam.id}, {cam.nome})"
+                        )
+                    else:
+                        seen_sources.add(cam.device_index)
+                        camera_sources.append(cam.device_index)
+                        self.logger.info(
+                            f"  -> Encontrada Câmera USB: ID {cam.id}, Índice {cam.device_index} ({cam.nome})"
+                        )
 
                 # Para câmeras IP, a fonte é a URL (a ser construída ou extraída)
                 elif cam.ip_address:
                     # TODO: Construir a URL RTSP completa a partir dos campos do DB
                     # Por enquanto, vamos assumir que ip_address já é a URL
-                    camera_sources.append(cam.ip_address)
-                    self.logger.info(
-                        f"  -> Encontrada Câmera IP: ID {cam.id}, URL {cam.ip_address} ({cam.nome})"
-                    )
+                    if cam.ip_address in seen_sources:
+                        self.logger.warning(
+                            f"Ignorando câmera IP duplicada com url={cam.ip_address} (ID {cam.id}, {cam.nome})"
+                        )
+                    else:
+                        seen_sources.add(cam.ip_address)
+                        camera_sources.append(cam.ip_address)
+                        self.logger.info(
+                            f"  -> Encontrada Câmera IP: ID {cam.id}, URL {cam.ip_address} ({cam.nome})"
+                        )
 
             if not camera_sources:
                 self.logger.warning("Nenhuma câmera ativa encontrada no banco de dados.")

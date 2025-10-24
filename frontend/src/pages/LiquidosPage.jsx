@@ -1,3 +1,4 @@
+// frontend/src/pages/LiquidosPage.jsx
 import { useEffect, useState } from 'react'
 import {
   Box,
@@ -224,10 +225,16 @@ export default function LiquidosPage() {
                 {/* Overlay de boot */}
                 {bootingA && (
                   <Center position="absolute" inset={0} bg="blackAlpha.400" zIndex={1}>
-                    <Spinner color="blue.300" thickness="3px" />
+                    <Spinner color="#800020" thickness="3px" />
                   </Center>
                 )}
-                <CameraStream cameraId={CAMERA_ID_A} online={runningA} ratio={16/9} />
+                <CameraStream
+                  cameraId={CAMERA_ID_A}
+                  online={runningA}
+                  ratio={16/9}
+                  showSpinner={false}
+                  spinnerColor="#800020"
+                />
               </Box>
 
               {/* Footer (placeholder) */}

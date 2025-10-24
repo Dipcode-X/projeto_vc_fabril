@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import sys
 from .visualization import Visualizer
 from .detector import YOLODetector
 from .state_manager_advanced_layer_01 import SimpleStateManager
@@ -11,7 +12,7 @@ import os
 # Cores do legacy (BGR format para OpenCV)
 CORES_LEGACY = {
     'roi': (255, 0, 255),      # Rosa/Magenta para ROI
-    'divisor': (0, 255, 255),  # Amarelo para divisor  
+    'divisor': (0, 255, 255),  # Amarelo para divisor
     'item': (0, 255, 0),       # Verde para itens
     'text': (255, 255, 255),   # Branco para texto
     'status': (0, 255, 255),   # Ciano para status
@@ -59,6 +60,10 @@ class CameraProcessor:
         # --- Informações do Produto ---
         self.product_id = 1 # Placeholder
         self.product_name = "Produto Padrão" # Placeholder
+        try:
+            cv2.setNumThreads(1)
+        except Exception:
+            pass
 
     def stop(self):
         """Sinaliza para a thread de processamento parar."""
@@ -77,9 +82,32 @@ class CameraProcessor:
             "status_message": sm_status.get('estado', 'N/A')
         }
 
+    def update_thresholds(self, confianca_roi=None, confianca_item=None, confianca_divisor=None):
+        """Atualiza em tempo de execução os limiares de confiança do detector.
+        
+        Args:
+            confianca_roi (float|None): novo limiar da ROI (0..1)
+            confianca_item (float|None): novo limiar de itens (0..1)
+            confianca_divisor (float|None): novo limiar de divisores (0..1)
+        """
+        changes = []
+        if confianca_roi is not None:
+            self.detector.confianca_roi = float(confianca_roi)
+            changes.append(f"confianca_roi={self.detector.confianca_roi:.3f}")
+        if confianca_item is not None:
+            self.detector.confianca_item = float(confianca_item)
+            changes.append(f"confianca_item={self.detector.confianca_item:.3f}")
+        if confianca_divisor is not None:
+            self.detector.confianca_divisor = float(confianca_divisor)
+            changes.append(f"confianca_divisor={self.detector.confianca_divisor:.3f}")
+
+        if changes:
+            self.logger.info("Atualizando thresholds: " + ", ".join(changes))
+
     def initialize(self):
         """Inicializa a captura da câmera e configura a resolução."""
-        self.cap = cv2.VideoCapture(self.camera_source)
+        backend = cv2.CAP_AVFOUNDATION if sys.platform == "darwin" else None
+        self.cap = cv2.VideoCapture(self.camera_source, backend) if backend is not None else cv2.VideoCapture(self.camera_source)
         if not self.cap.isOpened():
             self.logger.warning(f"Não foi possível abrir a câmera {self.camera_source}")
             return False
@@ -128,7 +156,8 @@ class CameraProcessor:
 
     def run(self):
         """O loop principal de processamento da câmera."""
-        self.cap = cv2.VideoCapture(self.camera_source)
+        backend = cv2.CAP_AVFOUNDATION if sys.platform == "darwin" else None
+        self.cap = cv2.VideoCapture(self.camera_source, backend) if backend is not None else cv2.VideoCapture(self.camera_source)
         if not self.cap.isOpened():
             self.logger.warning(f"Câmera {self.camera_source} não encontrada - aguardando conexão...")
             self.running = False
@@ -165,7 +194,8 @@ class CameraProcessor:
                 
                 # Suprime temporariamente os logs do OpenCV para evitar spam
                 cv2.setLogLevel(0)  # Silencia OpenCV
-                self.cap = cv2.VideoCapture(self.camera_source)
+                backend = cv2.CAP_AVFOUNDATION if sys.platform == "darwin" else None
+                self.cap = cv2.VideoCapture(self.camera_source, backend) if backend is not None else cv2.VideoCapture(self.camera_source)
                 cv2.setLogLevel(1)  # Restaura logs do OpenCV
                 
                 if self.cap.isOpened():
